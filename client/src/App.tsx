@@ -3,13 +3,24 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import SignupPage from "./pages/SignupPage";
 import MessengerPage from "./pages/MessengerPage";
+import { useNavigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
 
 export const TOKEN_STORAGE_KEY = "authToken";
 export const ID_STORAGE_KEY = "id";
 
 function App() {
-    const [token, setToken] = useState(localStorage.getItem(TOKEN_STORAGE_KEY));
-    const [id, setId] = useState(localStorage.getItem(ID_STORAGE_KEY));
+    const navigate = useNavigate();
+    const tokenLs = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const idLs = localStorage.getItem(ID_STORAGE_KEY);
+
+    if (tokenLs == null || idLs == null) {
+        navigate("/login");
+    }
+
+    const [token, setToken] = useState(tokenLs);
+    const [id, setId] = useState(idLs);
+    const [menu, setMenu] = useState<User | null>(null);
 
     const changeToken = (string: string) => {
         setToken(string);
@@ -42,30 +53,48 @@ function App() {
         };
     }, []);
 
+    useEffect(() => {
+        if (socket && token && id) {
+            socket.on("menu", (data: { success: boolean; message: string; user: User }) => {
+                console.log(data);
+                setMenu(data.user);
+            });
+            socket.emit("menu", { token, id });
+        }
+    }, [socket]);
+
     return (
-        <div>
-            <BrowserRouter>
-                {socket && (
-                    <Routes>
-                        <Route path="/messenger" element={<MessengerPage socket={socket} />} />
-                        <Route
-                            path="/signup"
-                            element={
-                                <SignupPage
-                                    Data={{
-                                        token: token || "",
-                                        setTokenFunction: changeToken,
-                                        id: id || "",
-                                        setIdFunction: changeId,
-                                    }}
-                                    socket={socket}
-                                />
-                            }
-                        />
-                    </Routes>
-                )}
-            </BrowserRouter>
-        </div>
+        <Routes>
+            <Route path="/messenger" element={<MessengerPage socket={socket} menu={menu} />} />
+            <Route
+                path="/signup"
+                element={
+                    <SignupPage
+                        Data={{
+                            token: token || "",
+                            setTokenFunction: changeToken,
+                            id: id || "",
+                            setIdFunction: changeId,
+                        }}
+                        socket={socket}
+                    />
+                }
+            />
+            <Route
+                path="/login"
+                element={
+                    <LoginPage
+                        Data={{
+                            token: token || "",
+                            setTokenFunction: changeToken,
+                            id: id || "",
+                            setIdFunction: changeId,
+                        }}
+                        socket={socket}
+                    />
+                }
+            />
+        </Routes>
     );
 }
 

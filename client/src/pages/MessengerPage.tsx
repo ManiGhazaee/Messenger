@@ -8,12 +8,13 @@ type Message = {
     time: Date;
 };
 
-const MessengerPage = ({ socket }: { socket: Socket }) => {
+const MessengerPage = ({ socket, menu }: { socket: Socket | null; menu: User | null }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [messageInput, setMessageInput] = useState("");
     useEffect(() => {
         if (socket) {
             socket.on("privateMessage", (data) => {
+                console.log(data);
                 setMessages((prevMessages) => [...prevMessages, data]);
             });
         }
@@ -24,12 +25,14 @@ const MessengerPage = ({ socket }: { socket: Socket }) => {
 
         if (socket) {
             socket.emit("joinRoom", recipient);
-            socket.emit("privateMessage", { recipient, message: messageInput });
+            socket.emit("privateMessage", { sender: recipient, content: messageInput });
+            console.log(recipient, messageInput);
         }
         setMessageInput("");
     };
     return (
         <div>
+            <div>{JSON.stringify(menu)}</div>
             <div>
                 {messages.map((message, index) => (
                     <div key={index}>{`${message.sender}: ${message.content}`}</div>

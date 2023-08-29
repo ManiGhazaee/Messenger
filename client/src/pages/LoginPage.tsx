@@ -1,9 +1,10 @@
+import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../components/Loading";
 import { Socket } from "socket.io-client";
 
-const SignupPage = ({
+const LoginPage = ({
     Data,
     socket,
 }: {
@@ -15,46 +16,39 @@ const SignupPage = ({
     };
     socket: Socket | null;
 }) => {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
+    const [usernameOrEmail, setUsernameOrEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
     const [isLoading, setisLoading] = useState<boolean>(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         if (socket) {
-            socket.on(
-                "signup",
-                (data: { token?: string; id?: string; message: string; success: boolean }) => {
-                    console.log(data);
-                    if (data.success === true && data.token && data.id) {
-                        Data.setTokenFunction(data.token);
-                        Data.setIdFunction(data.id);
-                        navigate("/messenger");
-                    } else {
-                        setMessage(data.message);
-                    }
+            socket.on("login", (data: string) => {
+                console.log(data);
+                const dataParsed: {
+                    token?: string;
+                    id?: string;
+                    message: string;
+                    success: boolean;
+                } = JSON.parse(data);
+                if (dataParsed.success === true && dataParsed.token && dataParsed.id) {
+                    Data.setTokenFunction(dataParsed.token);
+                    Data.setIdFunction(dataParsed.id);
+                    navigate("/messenger");
+                } else {
+                    setMessage(dataParsed.message);
                 }
-            );
+            });
         }
     }, [socket]);
 
-    const handleSignUp = () => {
+    const handleLogin = () => {
         setisLoading(true);
         try {
-            if (password !== confirmPassword) {
-                setMessage(
-                    "Password and confirm password do not match. Please make sure you enter the same password in both fields."
-                );
-                return;
-            }
-
             if (socket) {
-                socket.emit("signup", { username, email, password });
+                socket.emit("login", { username_or_email: usernameOrEmail, password });
             }
-            console.log(socket);
         } catch (error) {
             console.error("Sign-up failed:", error);
         }
@@ -64,40 +58,30 @@ const SignupPage = ({
             <Link to={"/"}>
                 <div
                     id="logo-cont"
-                    className="inline-block relative text-[24px] left-1/2 -translate-x-1/2 font-bold mx-auto mt-[12px]"
+                    className="inline-block relative text-[24px] left-1/2 -translate-x-1/2 font-bold italic mx-auto mt-[12px]"
                 >
-                    <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500 px-[1px]">
-                        S
+                    <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600 px-[1px]">
+                        Fire
                     </span>
-                    <span>Messanger</span>
+                    <span>Code</span>
                 </div>
             </Link>
             <div className="min-h-fit w-[300px] mx-auto text-[14px]">
                 <div className="relative bg-black shadow-md rounded px-8 pt-6 pb-8 mb-4">
                     <h2 className="text-[34px] font-bold mb-[30px] text-center mt-[60px]">
-                        Sign Up
+                        Log In
                     </h2>
                     <div className="mb-4">
                         <input
                             className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
                             type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Username or Email"
+                            value={usernameOrEmail}
+                            onChange={(e) => setUsernameOrEmail(e.target.value)}
                             required={true}
                         />
                     </div>
-                    <div className="mb-4">
-                        <input
-                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
-                            type="email"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required={true}
-                        />
-                    </div>
-                    <div className="mb-4">
+                    <div className="mb-6">
                         <input
                             className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
                             type="password"
@@ -107,21 +91,11 @@ const SignupPage = ({
                             required={true}
                         />
                     </div>
-                    <div className="mb-6">
-                        <input
-                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
-                            type="password"
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required={true}
-                        />
-                    </div>
                     <div className="flex items-center justify-between">
                         <button
                             className="bg-orange-500 hover:bg-red-600 text-black font-bold py-[6px] px-4 rounded focus:outline-none focus:shadow-outline w-full transition"
                             type="button"
-                            onClick={handleSignUp}
+                            onClick={handleLogin}
                         >
                             {isLoading ? (
                                 <div className="w-full block h-[21px]">
@@ -130,14 +104,14 @@ const SignupPage = ({
                                     </div>
                                 </div>
                             ) : (
-                                "Create Account"
+                                "Login"
                             )}
                         </button>
                     </div>
                     <div className="flex items-center justify-between mt-[20px]">
-                        <span className="text-text_2">Already have an account? </span>
-                        <Link to="/login" className="text-orange-500 hover:text-red-600">
-                            Login
+                        <span className="text-text_2">Don't have an account? </span>
+                        <Link to="/signup" className="text-orange-500 hover:text-red-600">
+                            Signup
                         </Link>
                     </div>
                     <div className="text-center mt-[20px] text-red-600 w-full overflow-hidden">
@@ -149,4 +123,4 @@ const SignupPage = ({
     );
 };
 
-export default SignupPage;
+export default LoginPage;
