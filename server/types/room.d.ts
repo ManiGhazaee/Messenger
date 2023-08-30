@@ -3,6 +3,7 @@ type Room = {
     participants: string[];
     messages: Message[];
     max_users: number;
+    message_count: number;
 };
 
 type Message = {

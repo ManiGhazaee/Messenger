@@ -1,7 +1,7 @@
 import express from "express";
 import { Server, Socket } from "socket.io";
 import { customCors } from "./middlewares/cors";
-import { login, signup, user } from "./functions/account";
+import { getRoom, roomIdWith, login, publicProfile, signup, user } from "./functions/account";
 import mongoose from "mongoose";
 import { isAuthorized } from "./functions/auth";
 require("dotenv").config();
@@ -47,6 +47,41 @@ io.on("connection", (socket: Socket) => {
         }
     });
 
+    socket.on("profile", async (data: { token: string; id: string; username: string }) => {
+        if (isAuthorized(data.token)) {
+            const user = await publicProfile(data.username);
+            if (user) {
+                const roomId = roomIdWith(data.id, user);
+                if (roomId) {
+                    const messages = await getRoom(roomId, 40);
+                    if (messages) {
+                        socket.emit("profile", {
+                            success: true,
+                            message: "Messages found",
+                            username: user.username,
+                            bio: user.bio,
+                            room_id: roomId,
+                            messages: messages,
+                        });
+                    } else {
+                        socket.emit("profile", { success: false, message: "Chat Not Found" });
+                    }
+                } else {
+                    socket.emit("profile", {
+                        success: true,
+                        message: "No messages",
+                        username: user.username,
+                        bio: user.bio,
+                    });
+                }
+            } else {
+                socket.emit("profile", { success: false, message: "User not found" });
+            }
+        } else {
+            socket.emit("profile", { success: false, message: "Token not provided" });
+        }
+    });
+
     socket.on("signup", (data: SignupData) => {
         console.log(data);
         signup(socket, data);
@@ -67,7 +102,7 @@ io.on("connection", (socket: Socket) => {
 
     console.log(room);
 
-    socket.on("privateMessage", (data: Message) => {
+    socket.on("message", (data: Message) => {
         if (room) {
             io.to(room).emit("privateMessage", data);
             console.log(data);

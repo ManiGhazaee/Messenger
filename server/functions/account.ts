@@ -3,7 +3,9 @@ import Filter from "bad-words";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { existsEmail, existsUsername } from "../utils/general";
-import UserModel from "../models/user";
+import UserModel, { DUser } from "../models/user";
+import RoomModel, { DRoom } from "../models/room";
+import mongoose from "mongoose";
 require("dotenv").config();
 
 export async function signup(socket: Socket, data: SignupData) {
@@ -165,4 +167,40 @@ export async function user(socket: Socket, id: string) {
     }
 
     socket.emit("menu", { user, success: true, message: "User found" });
+}
+
+export async function publicProfile(username: string) {
+    const user = await UserModel.findOne({
+        username: username,
+    });
+
+    if (!user) {
+        return false;
+    }
+
+    return user;
+}
+
+export function roomIdWith(
+    id: string,
+    user: mongoose.Document<unknown, {}, DUser> & DUser & { _id: mongoose.Types.ObjectId }
+) {
+    if (user.rooms.length === 0) return false;
+
+    for (let i = 0; i < user.rooms.length; i++) {
+        if (user.rooms[i].with === id) {
+            return user.rooms[i].id;
+        }
+    }
+    return false;
+}
+
+export async function getRoom(id: string, limit: number) {
+    const room = await RoomModel.findById(id);
+
+    if (!room) {
+        return false;
+    }
+
+    return room.messages.slice(0, Math.min(limit, room.messages.length));
 }

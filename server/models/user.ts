@@ -1,6 +1,6 @@
 import mongoose, { Document } from "mongoose";
 
-interface DUser extends Document {
+export interface DUser extends Document {
     username: string;
     password: string;
     email: string;
@@ -29,6 +29,7 @@ const userSchema = new mongoose.Schema<DUser>({
         type: [
             {
                 id: String,
+                with: String,
                 last_message: {
                     id: String,
                     sender: String,

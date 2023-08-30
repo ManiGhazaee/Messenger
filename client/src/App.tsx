@@ -65,7 +65,10 @@ function App() {
 
     return (
         <Routes>
-            <Route path="/messenger" element={<MessengerPage socket={socket} menu={menu} />} />
+            <Route
+                path="/messenger"
+                element={<MessengerPage socket={socket} menu={menu} id={id} />}
+            />
             <Route
                 path="/signup"
                 element={
