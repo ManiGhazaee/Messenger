@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import SignupPage from "./pages/SignupPage";
-import MessengerPage, { Chat } from "./pages/MessengerPage";
+import MessengerPage from "./pages/MessengerPage";
 import { useNavigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
+import useSocket from "./components/useSocket";
 
 export const TOKEN_STORAGE_KEY = "authToken";
 export const ID_STORAGE_KEY = "id";
@@ -64,13 +65,18 @@ function App() {
         };
     }, []);
 
+    useSocket(socket, "menu", (data: { success: boolean; message: string; user: User }) => {
+        console.log(data);
+        if (!data.success) {
+            navigate("/login");
+        } else if (data && "user" in data && data.user) {
+            setMenu(data.user);
+            setUsername(data.user.username);
+        }
+    });
+
     useEffect(() => {
         if (socket && token && id) {
-            socket.on("menu", (data: { success: boolean; message: string; user: User }) => {
-                console.log(data);
-                setMenu(data.user);
-                setUsername(data.user.username);
-            });
             socket.emit("menu", { token, id });
         }
     }, [socket]);

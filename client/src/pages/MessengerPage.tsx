@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { Socket } from "socket.io-client";
 import useSocket from "../components/useSocket";
+import { addMessage, deleteMessagesFor } from "../ts/utils";
 
 type SearchResult = {
     success: boolean;
@@ -8,7 +9,7 @@ type SearchResult = {
     users: { username: string; bio: string }[];
 };
 
-export type Chat = {
+export type TChat = {
     [key: string]: Message[];
 };
 
@@ -34,55 +35,35 @@ const MessengerPage = ({
     const [searchState, setSearchState] = useState<boolean>(false);
     const [chatUsername, setChatUsername] = useState<string | null>(null);
 
-    const [chat, setChat] = useState<Chat>({
+    const [chat, setChat] = useState<TChat>({
         [username || ""]: [],
     });
 
     useSocket(socket, "search", (data: SearchResult) => {
         setSearchResult(data);
     });
-    useSocket(socket, "profile", (data: SearchResult) => {
-        console.log(data);
-    });
-    useSocket(socket, "message", (data: { message: Message; success: boolean }) => {
-        console.log("myUsername:", username);
-        console.log("data:", data);
-        if (username) {
-            if (data.message.sender === username) {
-                setChat((prev) => {
-                    let obj: Chat = { ...prev };
-                    if (data.message.receiver in obj) {
-                        if (
-                            obj[data.message.receiver][obj[data.message.receiver].length - 1].ms !==
-                            data.message.ms
-                        ) {
-                            obj[data.message.receiver].push(data.message);
-                        }
-                    } else {
-                        obj[data.message.receiver] = [data.message];
-                    }
-                    return obj;
-                });
-            } else if (data.message.receiver === username) {
-                setChat((prev) => {
-                    let obj: Chat = { ...prev };
-                    if (data.message.sender in obj) {
-                        if (
-                            obj[data.message.sender][obj[data.message.sender].length - 1].ms !==
-                            data.message.ms
-                        ) {
-                            obj[data.message.sender].push(data.message);
-                        }
-                    } else {
-                        obj[data.message.sender] = [data.message];
-                    }
-                    return obj;
-                });
-            } else {
-                console.log("WTF?");
+    useSocket(
+        socket,
+        "profile",
+        (data: {
+            username: string;
+            bio: boolean;
+            room_id: string;
+            messages: Message[];
+            message: string;
+            success: boolean;
+        }) => {
+            console.log(data);
+            if ("messages" in data && data.messages && data.messages.length) {
+                deleteMessagesFor(username, setChat, data.messages[0]);
+                for (let i = data.messages.length - 1; i >= 0; i--) {
+                    addMessage(username, setChat, data.messages[i]);
+                }
             }
         }
-        console.log("chat", chat);
+    );
+    useSocket(socket, "message", (data: { message: Message; success: boolean }) => {
+        addMessage(username, setChat, data.message);
     });
 
     console.count("rendered");
@@ -97,6 +78,7 @@ const MessengerPage = ({
                 content: messageInput,
                 time: new Date(),
             });
+            socket.emit("menu", { token, id });
         }
         setMessageInput("");
     };
@@ -213,9 +195,12 @@ const MessengerPage = ({
                             "rooms" in menu &&
                             menu.rooms.length !== 0 &&
                             menu.rooms.map((elem) => (
-                                <div className="h-[20px] flex flex-row">
+                                <div
+                                    className="h-[20px] flex flex-row"
+                                    onClick={() => userOnClick(elem.username)}
+                                >
                                     <div className="h-full aspect-square border border-borders rounded-full bg-slate-800"></div>
-                                    <div className="text-[18px]">{elem.with}</div>
+                                    <div className="text-[18px]">{elem.username}</div>
                                 </div>
                             ))}
                     </div>
@@ -229,7 +214,7 @@ const MessengerPage = ({
                             <div>
                                 {currentRoomWith in chat &&
                                     chat[currentRoomWith].length !== 0 &&
-                                    chat[currentRoomWith].map((message) => (
+                                    chat[currentRoomWith].map((message: Message) => (
                                         <div>{`${message.sender}: ${message.content}`}</div>
                                     ))}
                             </div>

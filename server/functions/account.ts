@@ -280,6 +280,7 @@ export async function createRoom(
 
         sender.rooms.push({
             id: newRoom._id.toString(),
+            username: receiver.username,
             with: receiver._id.toString(),
             last_message: message,
             not_seen_count: 1,
@@ -288,6 +289,7 @@ export async function createRoom(
 
         receiver.rooms.push({
             id: newRoom._id.toString(),
+            username: sender.username,
             with: sender._id.toString(),
             last_message: message,
             not_seen_count: 1,

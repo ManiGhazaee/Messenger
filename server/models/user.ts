@@ -29,6 +29,7 @@ const userSchema = new mongoose.Schema<DUser>({
         type: [
             {
                 id: String,
+                username: String,
                 with: String,
                 last_message: {
                     ms: String,

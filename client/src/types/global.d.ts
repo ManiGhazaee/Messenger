@@ -24,6 +24,7 @@ type User = {
 
 type UserRoom = {
     id: string;
+    username: string;
     with: string;
     last_message: Message;
     not_seen_count: number;

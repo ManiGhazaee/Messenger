@@ -14,6 +14,7 @@ const roomSchema = new mongoose.Schema<DRoom>({
     messages: {
         type: [
             {
+                ms: String,
                 sender: String,
                 receiver: String,
                 content: String,
