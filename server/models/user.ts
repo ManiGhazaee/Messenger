@@ -4,7 +4,7 @@ export interface DUser extends Document {
     username: string;
     password: string;
     email: string;
-    bio?: string;
+    bio: string;
     rooms: UserRoom[];
 }
 
@@ -31,8 +31,10 @@ const userSchema = new mongoose.Schema<DUser>({
                 id: String,
                 with: String,
                 last_message: {
-                    id: String,
+                    ms: String,
                     sender: String,
+                    receiver: String,
+                    seen: String,
                     content: String,
                     time: Date,
                 },

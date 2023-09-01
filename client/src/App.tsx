@@ -2,17 +2,19 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import SignupPage from "./pages/SignupPage";
-import MessengerPage from "./pages/MessengerPage";
+import MessengerPage, { Chat } from "./pages/MessengerPage";
 import { useNavigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 
 export const TOKEN_STORAGE_KEY = "authToken";
 export const ID_STORAGE_KEY = "id";
+export const USERNAME_STORAGE_KEY = "username";
 
 function App() {
     const navigate = useNavigate();
     const tokenLs = localStorage.getItem(TOKEN_STORAGE_KEY);
     const idLs = localStorage.getItem(ID_STORAGE_KEY);
+    const usernameLs = localStorage.getItem(USERNAME_STORAGE_KEY);
 
     if (tokenLs == null || idLs == null) {
         navigate("/login");
@@ -20,6 +22,7 @@ function App() {
 
     const [token, setToken] = useState(tokenLs);
     const [id, setId] = useState(idLs);
+    const [username, setUsername] = useState(usernameLs);
     const [menu, setMenu] = useState<User | null>(null);
 
     const changeToken = (string: string) => {
@@ -27,6 +30,9 @@ function App() {
     };
     const changeId = (string: string) => {
         setId(string);
+    };
+    const changeUsername = (string: string) => {
+        setUsername(string);
     };
 
     useEffect(() => {
@@ -40,7 +46,12 @@ function App() {
         } else {
             localStorage.removeItem(ID_STORAGE_KEY);
         }
-    }, [token, id]);
+        if (username) {
+            localStorage.setItem(USERNAME_STORAGE_KEY, username);
+        } else {
+            localStorage.removeItem(USERNAME_STORAGE_KEY);
+        }
+    }, [token, id, username]);
 
     const [socket, setSocket] = useState<Socket | null>(null);
 
@@ -58,6 +69,7 @@ function App() {
             socket.on("menu", (data: { success: boolean; message: string; user: User }) => {
                 console.log(data);
                 setMenu(data.user);
+                setUsername(data.user.username);
             });
             socket.emit("menu", { token, id });
         }
@@ -67,17 +79,24 @@ function App() {
         <Routes>
             <Route
                 path="/messenger"
-                element={<MessengerPage socket={socket} menu={menu} id={id} />}
+                element={
+                    <MessengerPage
+                        socket={socket}
+                        menu={menu}
+                        id={id}
+                        token={token}
+                        username={username}
+                    />
+                }
             />
             <Route
                 path="/signup"
                 element={
                     <SignupPage
                         Data={{
-                            token: token || "",
                             setTokenFunction: changeToken,
-                            id: id || "",
                             setIdFunction: changeId,
+                            setUsernameFunction: changeUsername,
                         }}
                         socket={socket}
                     />

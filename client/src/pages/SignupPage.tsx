@@ -8,10 +8,9 @@ const SignupPage = ({
     socket,
 }: {
     Data: {
-        token: string;
         setTokenFunction: (string: string) => void;
-        id: string;
         setIdFunction: (string: string) => void;
+        setUsernameFunction: (string: string) => void;
     };
     socket: Socket | null;
 }) => {
@@ -27,11 +26,18 @@ const SignupPage = ({
         if (socket) {
             socket.on(
                 "signup",
-                (data: { token?: string; id?: string; message: string; success: boolean }) => {
+                (data: {
+                    token?: string;
+                    id?: string;
+                    username?: string;
+                    message: string;
+                    success: boolean;
+                }) => {
                     console.log(data);
-                    if (data.success === true && data.token && data.id) {
+                    if (data.success === true && data.token && data.id && data.username) {
                         Data.setTokenFunction(data.token);
                         Data.setIdFunction(data.id);
+                        Data.setUsernameFunction(data.username);
                         navigate("/messenger");
                     } else {
                         setMessage(data.message);

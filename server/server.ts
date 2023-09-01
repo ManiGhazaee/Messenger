@@ -1,7 +1,17 @@
 import express from "express";
 import { Server, Socket } from "socket.io";
 import { customCors } from "./middlewares/cors";
-import { getRoom, roomIdWith, login, publicProfile, signup, user } from "./functions/account";
+import {
+    getRoom,
+    roomIdWith,
+    login,
+    userByName,
+    signup,
+    userById,
+    search,
+    createRoom,
+    addMessageToRoom,
+} from "./functions/account";
 import mongoose from "mongoose";
 import { isAuthorized } from "./functions/auth";
 require("dotenv").config();
@@ -20,8 +30,6 @@ db.once("open", () => {
 });
 
 const app = express();
-let rooms: Room[] = [];
-let users: User[] = [];
 
 app.use(customCors);
 
@@ -38,10 +46,27 @@ const io = new Server(server, {
 io.on("connection", (socket: Socket) => {
     console.log("A user connected");
 
-    socket.on("menu", (data: { token: string; id: string }) => {
-        console.log(data);
+    let room: string | null = null;
+
+    socket.on("search", async (data: { token: string; id: string; search: string }) => {
         if (isAuthorized(data.token)) {
-            user(socket, data.id);
+            const users = await search(data.search, 20);
+            if (users) {
+                socket.emit("search", { success: true, message: "Users found", users: users });
+            }
+        } else {
+            socket.emit("search", { success: false, message: "Token not provided" });
+        }
+    });
+
+    socket.on("menu", async (data: { token: string; id: string }) => {
+        if (isAuthorized(data.token)) {
+            const u = await userById(data.id);
+            if (u) {
+                socket.emit("menu", { user: u, success: true, message: "User found" });
+            } else {
+                socket.emit("menu", { success: false, message: "User not found" });
+            }
         } else {
             socket.emit("menu", { success: false, message: "Token not provided" });
         }
@@ -49,7 +74,7 @@ io.on("connection", (socket: Socket) => {
 
     socket.on("profile", async (data: { token: string; id: string; username: string }) => {
         if (isAuthorized(data.token)) {
-            const user = await publicProfile(data.username);
+            const user = await userByName(data.username);
             if (user) {
                 const roomId = roomIdWith(data.id, user);
                 if (roomId) {
@@ -83,31 +108,108 @@ io.on("connection", (socket: Socket) => {
     });
 
     socket.on("signup", (data: SignupData) => {
-        console.log(data);
         signup(socket, data);
     });
 
     socket.on("login", (data: LoginData) => {
-        console.log(data);
         login(socket, data);
     });
 
-    let room: string | null = null;
-
-    socket.on("joinRoom", (roomId: string) => {
-        socket.join(roomId);
-        room = roomId;
-        console.log(`User joined room ${roomId}`);
-    });
-
-    console.log(room);
-
-    socket.on("message", (data: Message) => {
-        if (room) {
-            io.to(room).emit("privateMessage", data);
-            console.log(data);
+    socket.on("join", (data: { token: string; id: string }) => {
+        if (isAuthorized(data.token)) {
+            if (!room) {
+                socket.join(data.id);
+                room = data.id;
+            }
+        } else {
+            socket.emit("join", { success: false, message: "Token not provided" });
         }
+        // console.log(`User joined room ${data.id}`);
     });
+
+    socket.on(
+        "message",
+        async (data: {
+            token: string;
+            sender: string;
+            receiver: string;
+            content: string;
+            time: Date;
+        }) => {
+            try {
+                if (isAuthorized(data.token)) {
+                    const message: Message = {
+                        ms: (performance.now() * 1000).toString(),
+                        sender: data.sender,
+                        receiver: data.receiver,
+                        content: data.content,
+                        seen: false,
+                        time: data.time,
+                    };
+                    const sender = await userByName(data.sender);
+                    const receiver = await userByName(data.receiver);
+                    if (sender && receiver) {
+                        const roomId = roomIdWith(sender._id.toString(), receiver);
+                        if (roomId) {
+                            socket.to(receiver._id.toString()).emit("message", {
+                                success: true,
+                                message: message,
+                            });
+
+                            socket.emit("message", { success: true, message: message });
+
+                            await addMessageToRoom(message, roomId);
+
+                            const newSender = await userByName(data.sender);
+                            if (newSender) {
+                                socket.to(newSender._id.toString()).emit("menu", {
+                                    newSender,
+                                    success: true,
+                                });
+                            }
+
+                            const newReceiver = await userByName(data.receiver);
+                            if (newReceiver) {
+                                socket.to(newReceiver._id.toString()).emit("menu", {
+                                    newReceiver,
+                                    success: true,
+                                });
+                            }
+                        } else {
+                            socket
+                                .to(receiver._id.toString())
+                                .emit("message", { success: true, message: message });
+
+                            socket.emit("message", { success: true, message: message });
+
+                            await createRoom(sender, receiver, message, 2);
+
+                            const newSender = await userByName(data.sender);
+                            if (newSender) {
+                                socket.to(newSender._id.toString()).emit("menu", {
+                                    newSender,
+                                    success: true,
+                                });
+                            }
+                            const newReceiver = await userByName(data.receiver);
+                            if (newReceiver) {
+                                socket.to(newReceiver._id.toString()).emit("menu", {
+                                    newReceiver,
+                                    success: true,
+                                });
+                            }
+                        }
+                    } else {
+                        socket.emit("message", { success: false, message: "User not found" });
+                    }
+                } else {
+                    socket.emit("message", { success: false, message: "Token not provided" });
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    );
 
     socket.on("disconnect", () => {
         console.log("A user disconnected");

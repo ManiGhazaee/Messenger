@@ -25,7 +25,7 @@ type User = {
 type UserRoom = {
     id: string;
     with: string;
-    last_message: Message;
+    last_message: MessageFromServer;
     not_seen_count: number;
     is_muted: boolean;
 };

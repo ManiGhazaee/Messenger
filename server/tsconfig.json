@@ -4,9 +4,7 @@
     },
     "files": [
         "server.ts",
-        "types/room.d.ts",
-        "types/socket.d.ts",
-        "types/user.d.ts",
+        "types/global.d.ts",
     ],
     "compilerOptions": {
         /* Visit https://aka.ms/tsconfig to read more about this file */

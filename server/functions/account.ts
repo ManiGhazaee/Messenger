@@ -8,6 +8,11 @@ import RoomModel, { DRoom } from "../models/room";
 import mongoose from "mongoose";
 require("dotenv").config();
 
+export type DUserDoc = mongoose.Document<unknown, {}, DUser> &
+    DUser & {
+        _id: mongoose.Types.ObjectId;
+    };
+
 export async function signup(socket: Socket, data: SignupData) {
     try {
         const { username, email, password } = data;
@@ -97,6 +102,7 @@ export async function signup(socket: Socket, data: SignupData) {
         socket.emit("signup", {
             token: token,
             id: id,
+            username: user.username,
             success: true,
             message: "Account created successfully",
         });
@@ -140,6 +146,7 @@ export async function login(socket: Socket, data: LoginData) {
             socket.emit("login", {
                 token: token,
                 id: user.id,
+                username: user.username,
                 success: true,
                 message: "Logged in successfully",
             });
@@ -158,27 +165,36 @@ export async function login(socket: Socket, data: LoginData) {
     }
 }
 
-export async function user(socket: Socket, id: string) {
-    const user = await UserModel.findById(id);
+export async function userById(id: string) {
+    try {
+        const user = await UserModel.findById(id);
 
-    if (!user) {
-        socket.emit("menu", { success: false, message: "User not found" });
-        return;
-    }
+        if (!user) {
+            return false;
+        }
 
-    socket.emit("menu", { user, success: true, message: "User found" });
-}
-
-export async function publicProfile(username: string) {
-    const user = await UserModel.findOne({
-        username: username,
-    });
-
-    if (!user) {
+        return user;
+    } catch (e) {
+        console.log(e);
         return false;
     }
+}
 
-    return user;
+export async function userByName(username: string) {
+    try {
+        const user = await UserModel.findOne({
+            username: username,
+        });
+
+        if (!user) {
+            return false;
+        }
+
+        return user;
+    } catch (e) {
+        console.log(e);
+        return false;
+    }
 }
 
 export function roomIdWith(
@@ -196,11 +212,100 @@ export function roomIdWith(
 }
 
 export async function getRoom(id: string, limit: number) {
-    const room = await RoomModel.findById(id);
+    try {
+        const room = await RoomModel.findById(id);
 
-    if (!room) {
+        if (!room) {
+            return false;
+        }
+
+        return room.messages.slice(0, Math.min(limit, room.messages.length));
+    } catch (e) {
+        console.log(e);
         return false;
     }
+}
 
-    return room.messages.slice(0, Math.min(limit, room.messages.length));
+export async function search(
+    username: string,
+    limit: number
+): Promise<false | { username: string; bio: string }[]> {
+    try {
+        const users = await UserModel.find({ username: { $regex: username, $options: "i" } })
+            .limit(limit)
+            .exec();
+
+        if (!users) {
+            return false;
+        }
+
+        const parsed: { username: string; bio: string }[] = users.map((elem) => {
+            return {
+                username: elem.username,
+                bio: elem.bio,
+            };
+        });
+
+        return parsed;
+    } catch (e) {
+        console.log(e);
+        return false;
+    }
+}
+
+export async function createRoom(
+    sender: DUserDoc,
+    receiver: DUserDoc,
+    message: Message,
+    maxUsers: number
+) {
+    try {
+        const newRoom = new RoomModel({
+            participants: [sender.username, receiver.username],
+            messages: [
+                {
+                    ms: message.ms,
+                    sender: message.sender,
+                    receiver: message.receiver,
+                    content: message.content,
+                    seen: false,
+                    time: message.time,
+                },
+            ],
+            max_users: maxUsers,
+            message_count: 1,
+        });
+
+        await newRoom.save();
+
+        sender.rooms.push({
+            id: newRoom._id.toString(),
+            with: receiver._id.toString(),
+            last_message: message,
+            not_seen_count: 1,
+            is_muted: false,
+        });
+
+        receiver.rooms.push({
+            id: newRoom._id.toString(),
+            with: sender._id.toString(),
+            last_message: message,
+            not_seen_count: 1,
+            is_muted: false,
+        });
+
+        await sender.save();
+        await receiver.save();
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+export async function addMessageToRoom(message: Message, roomId: string) {
+    const room = await RoomModel.findById(roomId);
+
+    if (room) {
+        room.messages.unshift(message);
+        await room.save();
+    }
 }
