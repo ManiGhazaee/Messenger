@@ -17,3 +17,11 @@ html {
     --borders-color: #333;
     --code-color: #252525;
 }
+
+::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #333;
+}

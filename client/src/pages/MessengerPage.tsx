@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Socket } from "socket.io-client";
 import useSocket from "../components/useSocket";
 import { addMessage, deleteMessagesFor } from "../ts/utils";
+import Chat from "../components/Chat";
 
 type SearchResult = {
     success: boolean;
@@ -66,11 +67,9 @@ const MessengerPage = ({
         addMessage(username, setChat, data.message);
     });
 
-    console.count("rendered");
-
     const sendPrivateMessage = () => {
+        if (messageInput.trim().length === 0) return;
         if (socket) {
-            socket.emit("join", { token, id });
             socket.emit("message", {
                 token,
                 sender: username,
@@ -115,7 +114,7 @@ const MessengerPage = ({
                     className="flex flex-col relative text-[22px] cursor-pointer"
                 >
                     {state === "chat" ? (
-                        <i className="bi bi-arrow-left"></i>
+                        <i className="bi bi-chevron-left"></i>
                     ) : (
                         <i className="bi bi-list"></i>
                     )}
@@ -189,18 +188,25 @@ const MessengerPage = ({
                         id="menu"
                         className={`${
                             state === "menu" || state === "setting" ? "w-full" : "w-0"
-                        } sm:w-[400px] bg-gray-500 h-full duration-200`}
+                        } sm:w-[400px] bg-gray-500 h-full duration-200 overflow-y-scroll`}
                     >
                         {menu &&
                             "rooms" in menu &&
                             menu.rooms.length !== 0 &&
                             menu.rooms.map((elem) => (
                                 <div
-                                    className="h-[20px] flex flex-row"
+                                    className="h-[60px] flex flex-row w-[100%] hover:bg-slate-300 border-borders group cursor-pointer duration-200"
                                     onClick={() => userOnClick(elem.username)}
                                 >
-                                    <div className="h-full aspect-square border border-borders rounded-full bg-slate-800"></div>
-                                    <div className="text-[18px]">{elem.username}</div>
+                                    <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-slate-800"></div>
+                                    <div className="flex flex-col">
+                                        <div className="text-[18px] mt-[6px] ml-[10px] group-hover:text-black duration-200">
+                                            {elem.username}
+                                        </div>
+                                        <div className="text-[14px] mt-[0px] ml-[10px] group-hover:text-black duration-200">
+                                            {elem.last_message.content}
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                     </div>
@@ -208,31 +214,34 @@ const MessengerPage = ({
                         id="chat"
                         className={`${
                             state === "chat" ? "w-full" : "w-0"
-                        } flex-grow bg-gray-800 h-auto overflow-hidden`}
+                        } flex-grow bg-gray-800 h-auto overflow-hidden relative`}
                     >
                         {chat && (
-                            <div>
-                                {currentRoomWith in chat &&
-                                    chat[currentRoomWith].length !== 0 &&
-                                    chat[currentRoomWith].map((message: Message) => (
-                                        <div>{`${message.sender}: ${message.content}`}</div>
-                                    ))}
+                            <div className="h-[calc(100%-50px)] overflow-y-scroll relative">
+                                {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && (
+                                    <Chat chat={chat[currentRoomWith]} selfUsername={username} />
+                                )}
                             </div>
                         )}
 
-                        <input
-                            type="text"
-                            className="outline-none bg-black"
-                            value={messageInput}
-                            onChange={(e) => setMessageInput(e.target.value)}
-                            placeholder="Type a message"
-                        />
-                        <button
-                            onClick={sendPrivateMessage}
-                            className="bg-black hover:bg-white hover:text-black"
-                        >
-                            Send
-                        </button>
+                        <div className="flex flex-row w-[calc(100%-10px)] h-[40px] absolute left-0 bottom-[5px] ml-[5px]">
+                            <input
+                                type="text"
+                                id="search-input"
+                                className="bg-black border-[1px] border-borders flex-grow text-[18px] rounded-full pl-3 py-1 outline-none h-full "
+                                autoComplete="off"
+                                value={messageInput}
+                                onChange={(e) => setMessageInput(e.target.value)}
+                                placeholder="Type a message"
+                            />
+                            <button
+                                id="search-button"
+                                className="border-[1px] border-borders text-black bg-white w-[40px]  active:bg-text_2 active:text-black duration-100 cursor-pointer rounded-full h-full relative ml-[5px]"
+                                onClick={sendPrivateMessage}
+                            >
+                                <i className="bi bi-send absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

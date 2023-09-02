@@ -37,6 +37,12 @@ function App() {
     };
 
     useEffect(() => {
+        document.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+        });
+    }, []);
+
+    useEffect(() => {
         if (token) {
             localStorage.setItem(TOKEN_STORAGE_KEY, token);
         } else {
@@ -77,6 +83,7 @@ function App() {
 
     useEffect(() => {
         if (socket && token && id) {
+            socket.emit("join", { token, id });
             socket.emit("menu", { token, id });
         }
     }, [socket]);
