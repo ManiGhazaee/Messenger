@@ -311,3 +311,31 @@ export async function addMessageToRoom(message: Message, roomId: string) {
         await room.save();
     }
 }
+
+export async function addLastMessageToRoom(
+    sender: DUserDoc,
+    receiver: DUserDoc,
+    message: Message,
+    roomId: string
+) {
+    try {
+        for (let i = 0; i < receiver.rooms.length; i++) {
+            if ("id" in receiver.rooms[i] && receiver.rooms[i].id === roomId) {
+                if ("last_message" in receiver.rooms[i]) {
+                    receiver.rooms[i].last_message = message;
+                }
+            }
+        }
+        for (let i = 0; i < sender.rooms.length; i++) {
+            if ("id" in sender.rooms[i] && sender.rooms[i].id === roomId) {
+                if ("last_message" in sender.rooms[i]) {
+                    sender.rooms[i].last_message = message;
+                }
+            }
+        }
+        await sender.save();
+        await receiver.save();
+    } catch (e) {
+        console.log(e);
+    }
+}

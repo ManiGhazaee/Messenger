@@ -217,7 +217,7 @@ const MessengerPage = ({
                         } flex-grow bg-gray-800 h-auto overflow-hidden relative`}
                     >
                         {chat && (
-                            <div className="h-[calc(100%-50px)] overflow-y-scroll relative">
+                            <div className="h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse">
                                 {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && (
                                     <Chat chat={chat[currentRoomWith]} selfUsername={username} />
                                 )}
@@ -225,21 +225,22 @@ const MessengerPage = ({
                         )}
 
                         <div className="flex flex-row w-[calc(100%-10px)] h-[40px] absolute left-0 bottom-[5px] ml-[5px]">
-                            <input
-                                type="text"
-                                id="search-input"
-                                className="bg-black border-[1px] border-borders flex-grow text-[18px] rounded-full pl-3 py-1 outline-none h-full "
-                                autoComplete="off"
-                                value={messageInput}
-                                onChange={(e) => setMessageInput(e.target.value)}
-                                placeholder="Type a message"
-                            />
+                            <div className="flex-grow bg-black border-borders border-[1px] h-full rounded-full px-4 ">
+                                <textarea
+                                    id="search-input"
+                                    className="resize-none bg-black text-[14px] outline-none py-[8px] h-[100%] w-full"
+                                    autoComplete="off"
+                                    value={messageInput}
+                                    onChange={(e) => setMessageInput(e.target.value)}
+                                    placeholder="Text Message"
+                                />
+                            </div>
                             <button
                                 id="search-button"
-                                className="border-[1px] border-borders text-black bg-white w-[40px]  active:bg-text_2 active:text-black duration-100 cursor-pointer rounded-full h-full relative ml-[5px]"
+                                className="text-black bg-white w-[40px]  active:bg-text_2 active:text-black duration-100 cursor-pointer rounded-full h-full relative ml-[5px]"
                                 onClick={sendPrivateMessage}
                             >
-                                <i className="bi bi-send absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
+                                <i className="bi bi-send absolute top-[53%] left-[48%] -translate-x-1/2 -translate-y-1/2"></i>
                             </button>
                         </div>
                     </div>

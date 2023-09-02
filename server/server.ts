@@ -11,6 +11,7 @@ import {
     search,
     createRoom,
     addMessageToRoom,
+    addLastMessageToRoom,
 } from "./functions/account";
 import mongoose from "mongoose";
 import { isAuthorized } from "./functions/auth";
@@ -160,18 +161,20 @@ io.on("connection", (socket: Socket) => {
 
                             await addMessageToRoom(message, roomId);
 
-                            const newSender = await userByName(data.sender);
-                            if (newSender) {
-                                socket.to(newSender._id.toString()).emit("menu", {
-                                    newSender,
-                                    success: true,
-                                });
-                            }
+                            await addLastMessageToRoom(sender, receiver, message, roomId);
 
                             const newReceiver = await userByName(data.receiver);
                             if (newReceiver) {
                                 socket.to(newReceiver._id.toString()).emit("menu", {
-                                    newReceiver,
+                                    user: newReceiver,
+                                    success: true,
+                                });
+                            }
+
+                            const newSender = await userByName(data.sender);
+                            if (newSender) {
+                                socket.emit("menu", {
+                                    user: newSender,
                                     success: true,
                                 });
                             }
@@ -184,17 +187,18 @@ io.on("connection", (socket: Socket) => {
 
                             await createRoom(sender, receiver, message, 2);
 
-                            const newSender = await userByName(data.sender);
-                            if (newSender) {
-                                socket.to(newSender._id.toString()).emit("menu", {
-                                    newSender,
-                                    success: true,
-                                });
-                            }
                             const newReceiver = await userByName(data.receiver);
                             if (newReceiver) {
                                 socket.to(newReceiver._id.toString()).emit("menu", {
-                                    newReceiver,
+                                    user: newReceiver,
+                                    success: true,
+                                });
+                            }
+
+                            const newSender = await userByName(data.sender);
+                            if (newSender) {
+                                socket.emit("menu", {
+                                    user: newSender,
                                     success: true,
                                 });
                             }

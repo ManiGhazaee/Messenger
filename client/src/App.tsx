@@ -38,7 +38,7 @@ function App() {
 
     useEffect(() => {
         document.addEventListener("contextmenu", (e) => {
-            e.preventDefault();
+            // e.preventDefault();
         });
     }, []);
 
