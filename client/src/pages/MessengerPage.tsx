@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Socket } from "socket.io-client";
 import useSocket from "../components/useSocket";
 import { addMessage, deleteMessagesFor } from "../ts/utils";
@@ -102,6 +102,47 @@ const MessengerPage = ({
         setState("setting");
         setChatUsername(null);
     };
+
+    useSocket(socket, "seen", (data: { message: Message }) => {
+        setChat((prev) => {
+            let obj = { ...prev };
+            if (obj && currentRoomWith && obj[currentRoomWith]) {
+                for (let i = obj[currentRoomWith].length - 1; i >= 0; i--) {
+                    if (obj[currentRoomWith][i].index === data.message.index) {
+                        obj[currentRoomWith][i] = data.message;
+                        break;
+                    }
+                }
+            }
+
+            return obj;
+        });
+    });
+
+    const onSeen = useCallback((index: number, message: Message) => {
+        if (message.seen) return;
+        let is_last = false;
+        if (currentRoomWith && chat[currentRoomWith].length - 1 === index) is_last = true;
+
+        if (socket) {
+            socket.emit("seen", {
+                token,
+                id,
+                index,
+                message,
+                is_last,
+            });
+        }
+
+        setChat((prev) => {
+            let obj = { ...prev };
+            if (prev && currentRoomWith && prev[currentRoomWith] && prev[currentRoomWith][index]) {
+                prev[currentRoomWith][index].seen = true;
+            }
+            return obj;
+        });
+        console.log(chat);
+    }, []);
 
     return (
         <div className="h-screen">
@@ -218,9 +259,16 @@ const MessengerPage = ({
                     >
                         {chat && (
                             <div className="h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse">
-                                {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && (
-                                    <Chat chat={chat[currentRoomWith]} selfUsername={username} />
-                                )}
+                                {currentRoomWith in chat &&
+                                    chat[currentRoomWith].length !== 0 &&
+                                    socket && (
+                                        <Chat
+                                            chat={chat[currentRoomWith]}
+                                            selfUsername={username}
+                                            socket={socket}
+                                            onSeenFn={onSeen}
+                                        />
+                                    )}
                             </div>
                         )}
 

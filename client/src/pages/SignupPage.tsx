@@ -39,6 +39,7 @@ const SignupPage = ({
                         Data.setIdFunction(data.id);
                         Data.setUsernameFunction(data.username);
                         navigate("/messenger");
+                        window.location.reload();
                     } else {
                         setMessage(data.message);
                     }

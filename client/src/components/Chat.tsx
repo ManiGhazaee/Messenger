@@ -1,73 +1,70 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useInView } from "react-intersection-observer";
+import React, { useCallback, useEffect, useRef, useState, WheelEvent } from "react";
+import { InView, useInView } from "react-intersection-observer";
+import ChatMessage from "./ChatMessage";
+import { Socket } from "socket.io-client";
 
-const Chat = ({ selfUsername, chat }: { selfUsername: string | null; chat: Message[] }) => {
-    const [autoScroll, setAutoScroll] = useState<boolean>(true);
-    console.log(chat);
-
-    const chatMessagesRef = useRef<HTMLDivElement>(null);
+const Chat = ({
+    socket,
+    selfUsername,
+    chat,
+    onSeenFn,
+}: {
+    socket: Socket;
+    selfUsername: string | null;
+    chat: Message[];
+    onSeenFn: (index: number, message: Message) => void;
+}) => {
+    const chatContRef = useRef<HTMLDivElement>(null);
     const [seenMessages, setSeenMessages] = useState<number[]>([]);
 
-    const handleToggleAutoScroll = () => {
-        setAutoScroll(!autoScroll);
-    };
+    const [autoScrollRef, autoScrollInView] = useInView({
+        threshold: 0,
+    });
 
     useEffect(() => {
-        if (autoScroll && chatMessagesRef.current) {
-            chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+        if (autoScrollInView) {
+            const autoS = document.getElementById("auto-scroll");
+            if (autoS) {
+                autoS.scrollIntoView({ behavior: "smooth" });
+            }
         }
-    }, [chat, autoScroll]);
-
-    const [ref, inView] = useInView();
+    }, [chat]);
 
     return (
         <>
-            <div className="text-[14px]" ref={chatMessagesRef}>
-                {chat.map((message, index) =>
+            <div id="chat-cont" className="text-[14px]" ref={chatContRef}>
+                <div className="bg-white text-black w-fit h-fit absolute top-0 left-0">
+                    {autoScrollInView.toString()}
+                </div>
+                {selfUsername && chat.map((message, index) =>
                     message.sender === selfUsername ? (
-                        <div className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right`}>
-                            <div
-                                key={index}
-                                className={`message relative w-fit px-3 bg-gray-600 rounded-2xl py-1 my-[2px] max-w-[70%] `}
-                            >
-                                {message.content}
-                                {
-                                    <span className="inline-block text-right ml-[8px] text-[10px] w-fit">{`${new Date(
-                                        message.time
-                                    )
-                                        .getHours()
-                                        .toString()
-                                        .padStart(2, "0")}:${new Date(message.time)
-                                        .getMinutes()
-                                        .toString()
-                                        .padStart(2, "0")}`}</span>
-                                }
-                                {message.seen ? (
-                                    <span className="ml-[0px] inline-block w-[12px] text-right">
-                                        <i className="bi bi-check2-all absolute bottom-[3px] right-[8px]"></i>
-                                    </span>
-                                ) : (
-                                    <span className="ml-[0px] inline-block w-[12px] text-right">
-                                        <i className="bi bi-check2 absolute bottom-[3px] right-[8px]"></i>
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                        <ChatMessage
+                            message={message}
+                            type="sender"
+                            onSeenFn={onSeenFn}
+                            chatIndex={index}
+                            selfUsername={selfUsername}
+                        />
                     ) : (
-                        <div className="flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]">
-                            <div
-                                key={index}
-                                className={`message relative w-fit px-3 bg-black rounded-2xl py-1 `}
-                            >
-                                {message.content}
-                            </div>
-                        </div>
+                        <ChatMessage
+                            message={message}
+                            type="receiver"
+                            onSeenFn={onSeenFn}
+                            chatIndex={index}
+                            selfUsername={selfUsername}
+                        />
                     )
                 )}
+
+                <p
+                    ref={autoScrollRef}
+                    id="auto-scroll"
+                    className="w-full absolute bottom-0 h-[140px]"
+                ></p>
             </div>
-            <button onClick={handleToggleAutoScroll}>
+            {/* <button onClick={handleToggleAutoScroll}>
                 {autoScroll ? "Disable AutoScroll" : "Enable AutoScroll"}
-            </button>
+            </button> */}
         </>
     );
 };

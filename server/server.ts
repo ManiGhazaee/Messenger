@@ -15,6 +15,7 @@ import {
 } from "./functions/account";
 import mongoose from "mongoose";
 import { isAuthorized } from "./functions/auth";
+import RoomModel from "./models/room";
 require("dotenv").config();
 
 let PORT = 8080;
@@ -108,6 +109,52 @@ io.on("connection", (socket: Socket) => {
         }
     });
 
+    socket.on(
+        "seen",
+        async (data: {
+            token: string;
+            id: string;
+            message: Message;
+            index: number;
+            is_last: boolean;
+        }) => {
+            if (isAuthorized(data.token)) {
+                const sender = await userByName(data.message.sender);
+                if (sender) {
+                    const newMessage = {
+                        ...data.message,
+                        seen: true,
+                    };
+                    socket.to(sender._id.toString()).emit("seen", { message: newMessage });
+
+                    const receiver = await userByName(data.message.receiver);
+                    if (receiver) {
+                        const roomId = roomIdWith(sender._id.toString(), receiver);
+                        if (roomId) {
+                            const room = await RoomModel.findById(roomId);
+                            if (room) {
+                                room.messages[data.index] = newMessage;
+                                await room.save();
+                            }
+
+                            if (data.is_last) {
+                                await addLastMessageToRoom(sender, receiver, newMessage, roomId);
+                            }
+
+                            const newSender = await userByName(data.message.sender);
+                            if (newSender) {
+                                socket.to(newSender._id.toString()).emit("menu", {
+                                    user: newSender,
+                                    success: true,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    );
+
     socket.on("signup", (data: SignupData) => {
         signup(socket, data);
     });
@@ -141,6 +188,7 @@ io.on("connection", (socket: Socket) => {
                 if (isAuthorized(data.token)) {
                     const message: Message = {
                         ms: (performance.now() * 1000).toString(),
+                        index: 0,
                         sender: data.sender,
                         receiver: data.receiver,
                         content: data.content,

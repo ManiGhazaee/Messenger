@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema<DUser>({
                 with: String,
                 last_message: {
                     ms: String,
+                    index: Number,
                     sender: String,
                     receiver: String,
                     seen: String,

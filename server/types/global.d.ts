@@ -7,6 +7,7 @@ type Room = {
 
 type Message = {
     ms: string;
+    index: number;
     sender: string;
     receiver: string;
     seen: boolean;
@@ -26,7 +27,7 @@ type UserRoom = {
     id: string;
     username: string;
     with: string;
-    last_message: MessageFromServer;
+    last_message: Message;
     not_seen_count: number;
     is_muted: boolean;
 };

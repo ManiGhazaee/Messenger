@@ -265,6 +265,7 @@ export async function createRoom(
             messages: [
                 {
                     ms: message.ms,
+                    index: 0,
                     sender: message.sender,
                     receiver: message.receiver,
                     content: message.content,
@@ -282,7 +283,7 @@ export async function createRoom(
             id: newRoom._id.toString(),
             username: receiver.username,
             with: receiver._id.toString(),
-            last_message: message,
+            last_message: message ,
             not_seen_count: 1,
             is_muted: false,
         });
@@ -307,6 +308,7 @@ export async function addMessageToRoom(message: Message, roomId: string) {
     const room = await RoomModel.findById(roomId);
 
     if (room) {
+        message.index = room.messages.length;
         room.messages.unshift(message);
         await room.save();
     }
