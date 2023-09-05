@@ -121,7 +121,7 @@ io.on("connection", (socket: Socket) => {
             if (isAuthorized(data.token)) {
                 const sender = await userByName(data.message.sender);
                 if (sender) {
-                    const newMessage = {
+                    const newMessage: Message = {
                         ...data.message,
                         seen: true,
                     };
@@ -133,7 +133,11 @@ io.on("connection", (socket: Socket) => {
                         if (roomId) {
                             const room = await RoomModel.findById(roomId);
                             if (room) {
-                                room.messages[data.index] = newMessage;
+                                for (let i = 0; i < room.messages.length; i++) {
+                                    if (room.messages[i].index === data.index) {
+                                        room.messages[i].seen = true;
+                                    }
+                                }
                                 await room.save();
                             }
 
@@ -200,6 +204,14 @@ io.on("connection", (socket: Socket) => {
                     if (sender && receiver) {
                         const roomId = roomIdWith(sender._id.toString(), receiver);
                         if (roomId) {
+                            let index: number = 0;
+                            for (let i = 0; i < sender.rooms.length; i++) {
+                                if (sender.rooms[i].id === roomId) {
+                                    index = sender.rooms[i].last_message.index + 1;
+                                    message.index = index;
+                                }
+                            }
+
                             socket.to(receiver._id.toString()).emit("message", {
                                 success: true,
                                 message: message,

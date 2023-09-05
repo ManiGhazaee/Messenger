@@ -54,7 +54,7 @@ const MessengerPage = ({
             message: string;
             success: boolean;
         }) => {
-            console.log(data);
+            console.log("data of profile", data);
             if ("messages" in data && data.messages && data.messages.length) {
                 deleteMessagesFor(username, setChat, data.messages[0]);
                 for (let i = data.messages.length - 1; i >= 0; i--) {
@@ -104,6 +104,7 @@ const MessengerPage = ({
     };
 
     useSocket(socket, "seen", (data: { message: Message }) => {
+        console.log("data of seen", data);
         setChat((prev) => {
             let obj = { ...prev };
             if (obj && currentRoomWith && obj[currentRoomWith]) {
@@ -119,7 +120,7 @@ const MessengerPage = ({
         });
     });
 
-    const onSeen = useCallback((index: number, message: Message) => {
+    const onSeen = (index: number, message: Message) => {
         if (message.seen) return;
         let is_last = false;
         if (currentRoomWith && chat[currentRoomWith].length - 1 === index) is_last = true;
@@ -128,7 +129,7 @@ const MessengerPage = ({
             socket.emit("seen", {
                 token,
                 id,
-                index,
+                index: message.index,
                 message,
                 is_last,
             });
@@ -136,13 +137,12 @@ const MessengerPage = ({
 
         setChat((prev) => {
             let obj = { ...prev };
-            if (prev && currentRoomWith && prev[currentRoomWith] && prev[currentRoomWith][index]) {
-                prev[currentRoomWith][index].seen = true;
+            if (obj && currentRoomWith && obj[currentRoomWith]) {
+                obj[currentRoomWith][index].seen = true;
             }
             return obj;
         });
-        console.log(chat);
-    }, []);
+    };
 
     return (
         <div className="h-screen">
