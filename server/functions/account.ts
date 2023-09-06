@@ -211,6 +211,33 @@ export function roomIdWith(
     return false;
 }
 
+export async function addMessageToRoomByParticipants(
+    senderName: string,
+    receiverName: string,
+    message: Message
+): Promise<[boolean, string | null]> {
+    try {
+        console.time("addMessageToRoomByParticipants performance");
+        const room = await RoomModel.findOne({
+            participants: { $all: [senderName, receiverName] },
+        });
+
+        if (room) {
+            message.index = room.messages.length;
+            await RoomModel.findByIdAndUpdate(room._id.toString(), {
+                $push: { messages: { $each: [message], $position: 0 } },
+            });
+            return [true, room._id.toString()];
+        }
+
+        console.timeEnd("addMessageToRoomByParticipants performance");
+        return [false, null];
+    } catch (e) {
+        console.log("addMessageToRoomByParticipants", e);
+        return [false, null];
+    }
+}
+
 export async function getRoom(id: string, limit: number) {
     try {
         const room = await RoomModel.findById(id);
@@ -229,7 +256,7 @@ export async function getRoom(id: string, limit: number) {
 
         return room.messages.slice(0, Math.min(limitBySeen + limit, room.messages.length));
     } catch (e) {
-        console.log(e);
+        console.log("getRoom", e);
         return false;
     }
 }
@@ -256,7 +283,7 @@ export async function search(
 
         return parsed;
     } catch (e) {
-        console.log(e);
+        console.log("search", e);
         return false;
     }
 }
@@ -285,8 +312,6 @@ export async function createRoom(
             message_count: 1,
         });
 
-        await newRoom.save();
-
         sender.rooms.push({
             id: newRoom._id.toString(),
             username: receiver.username,
@@ -305,21 +330,21 @@ export async function createRoom(
             is_muted: false,
         });
 
-        await sender.save();
-        await receiver.save();
+        await Promise.all([newRoom.save(), sender.save(), receiver.save()]);
     } catch (e) {
-        console.log(e);
+        console.log("createRoom", e);
     }
 }
 
 export async function addMessageToRoom(message: Message, roomId: string) {
+    console.time("addMessageToRoom performance");
     const room = await RoomModel.findById(roomId);
-
     if (room) {
         message.index = room.messages.length;
-        room.messages.unshift(message);
-        await room.save();
     }
+
+    await RoomModel.findByIdAndUpdate(roomId, { $unshift: { messages: message } }, { new: true });
+    console.timeEnd("addMessageToRoom performance");
 }
 
 export async function addLastMessageToRoom(
@@ -329,33 +354,35 @@ export async function addLastMessageToRoom(
     roomId: string
 ) {
     try {
-        for (let i = 0; i < receiver.rooms.length; i++) {
-            if ("id" in receiver.rooms[i] && receiver.rooms[i].id === roomId) {
-                if ("last_message" in receiver.rooms[i]) {
-                    receiver.rooms[i].last_message = message;
-                }
-            }
+        const senderRoom = sender.rooms.find((room) => room.id === roomId);
+        if (senderRoom && "last_message" in senderRoom) {
+            senderRoom.last_message = message;
         }
-        for (let i = 0; i < sender.rooms.length; i++) {
-            if ("id" in sender.rooms[i] && sender.rooms[i].id === roomId) {
-                if ("last_message" in sender.rooms[i]) {
-                    sender.rooms[i].last_message = message;
-                }
-            }
+
+        const receiverRoom = receiver.rooms.find((room) => room.id === roomId);
+        if (receiverRoom && "last_message" in receiverRoom) {
+            receiverRoom.last_message = message;
         }
-        await sender.save();
-        await receiver.save();
+
+        await Promise.all([sender.save(), receiver.save()]);
     } catch (e) {
-        console.log(e);
+        console.log("addLastMessageToRoom", e);
     }
 }
 
-export function findNewMessagesIndexMarker(messages: Message[]): number | null {
+export function findNewMessagesIndexMarker(messages: Message[], username: string): number | null {
     if (messages[0].seen) return null;
     for (let i = 1; i < messages.length; i++) {
         if (messages[i].seen) {
-            return messages[i - 1].index;
+            if (messages[i - 1].receiver !== username) {
+                return messages[i - 1].index;
+            } else {
+                return null;
+            }
         }
     }
-    return messages[messages.length - 1].index;
+    if (messages[messages.length - 1].receiver !== username) {
+        return messages[messages.length - 1].index;
+    }
+    return null;
 }

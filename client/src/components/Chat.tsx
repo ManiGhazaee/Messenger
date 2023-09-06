@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState, WheelEvent } from "react";
-import { InView, useInView } from "react-intersection-observer";
+import React, { useEffect, useRef, useState } from "react";
+import { useInView } from "react-intersection-observer";
 import ChatMessage from "./ChatMessage";
 import { Socket } from "socket.io-client";
 
@@ -38,12 +38,15 @@ const Chat = ({
     }, [chat]);
 
     useEffect(() => {
-        if (messagesRef.current && newMessagesMarker !== null && !readyForSeen) {
+        const chatScrollable = document.getElementById("chat-scrollable");
+        if (messagesRef.current && newMessagesMarker !== null && !readyForSeen && chatScrollable) {
             const children = messagesRef.current.children;
             if (children.length > 0) {
                 for (let i = 0; i < children.length; i++) {
                     if (parseInt(children[i].id) === newMessagesMarker) {
-                        messagesRef.current.scrollTo(0, (children[i] as HTMLElement).offsetTop - 100);
+                        chatScrollable.scrollTo({
+                            top: (children[i] as HTMLElement).offsetTop - 200,
+                        });
                         setReadyForSeen(() => true);
                     }
                 }
@@ -58,7 +61,7 @@ const Chat = ({
                     {autoScrollInView.toString()}
                 </div>
 
-                <div id="messages" ref={messagesRef}>
+                <div ref={messagesRef}>
                     {selfUsername &&
                         chat.map((message, index) =>
                             message.sender === selfUsername ? (

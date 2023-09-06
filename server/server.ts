@@ -13,6 +13,7 @@ import {
     addMessageToRoom,
     addLastMessageToRoom,
     findNewMessagesIndexMarker,
+    addMessageToRoomByParticipants,
 } from "./functions/account";
 import mongoose from "mongoose";
 import { isAuthorized } from "./functions/auth";
@@ -52,6 +53,7 @@ io.on("connection", (socket: Socket) => {
     let room: string | null = null;
 
     socket.on("search", async (data: { token: string; id: string; search: string }) => {
+        console.log("socket.on search executed");
         if (isAuthorized(data.token)) {
             const users = await search(data.search, 20);
             if (users) {
@@ -63,6 +65,7 @@ io.on("connection", (socket: Socket) => {
     });
 
     socket.on("menu", async (data: { token: string; id: string }) => {
+        console.log("socket.on menu executed");
         if (isAuthorized(data.token)) {
             const u = await userById(data.id);
             if (u) {
@@ -76,40 +79,47 @@ io.on("connection", (socket: Socket) => {
     });
 
     socket.on("profile", async (data: { token: string; id: string; username: string }) => {
-        if (isAuthorized(data.token)) {
-            const user = await userByName(data.username);
-            if (user) {
-                const roomId = roomIdWith(data.id, user);
-                if (roomId) {
-                    const messages = await getRoom(roomId, 100);
-                    if (messages) {
-                        const newMessagesMarker = findNewMessagesIndexMarker(messages);
-
-                        socket.emit("profile", {
-                            success: true,
-                            message: "Messages found",
-                            new_messages_marker: newMessagesMarker,
-                            username: user.username,
-                            bio: user.bio,
-                            room_id: roomId,
-                            messages: messages,
-                        });
-                    } else {
-                        socket.emit("profile", { success: false, message: "Chat Not Found" });
-                    }
-                } else {
-                    socket.emit("profile", {
-                        success: true,
-                        message: "No messages",
-                        username: user.username,
-                        bio: user.bio,
-                    });
-                }
-            } else {
-                socket.emit("profile", { success: false, message: "User not found" });
-            }
-        } else {
+        console.log("socket.on profile executed");
+        if (!isAuthorized(data.token)) {
             socket.emit("profile", { success: false, message: "Token not provided" });
+            return;
+        }
+
+        const user = await userByName(data.username);
+        if (!user) {
+            socket.emit("profile", { success: false, message: "User not found" });
+            return;
+        }
+
+        const roomId = roomIdWith(data.id, user);
+        if (!roomId) {
+            socket.emit("profile", {
+                success: true,
+                message: "No messages",
+                username: user.username,
+                bio: user.bio,
+            });
+            return;
+        }
+
+        const messages = await getRoom(roomId, 200);
+        if (messages) {
+            const newMessagesMarker: number | null = findNewMessagesIndexMarker(
+                messages,
+                user.username
+            );
+
+            socket.emit("profile", {
+                success: true,
+                message: "Messages found",
+                new_messages_marker: newMessagesMarker,
+                username: user.username,
+                bio: user.bio,
+                room_id: roomId,
+                messages: messages,
+            });
+        } else {
+            socket.emit("profile", { success: false, message: "Chat Not Found" });
         }
     });
 
@@ -122,66 +132,64 @@ io.on("connection", (socket: Socket) => {
             index: number;
             is_last: boolean;
         }) => {
-            if (isAuthorized(data.token)) {
-                const sender = await userByName(data.message.sender);
-                if (sender) {
-                    const newMessage: Message = {
-                        ...data.message,
-                        seen: true,
-                    };
-                    socket.to(sender._id.toString()).emit("seen", { message: newMessage });
+            // console.log("socket.on seen executed");
+            if (!isAuthorized(data.token)) {
+                return;
+            }
 
-                    const receiver = await userByName(data.message.receiver);
-                    if (receiver) {
-                        const roomId = roomIdWith(sender._id.toString(), receiver);
-                        if (roomId) {
-                            const room = await RoomModel.findById(roomId);
-                            // let notSeenCount: number | null = null;
+            const sender = await userByName(data.message.sender);
+            if (!sender) {
+                return;
+            }
 
-                            if (room) {
-                                let firstSeenIndex: number | null = null;
+            const newMessage: Message = {
+                ...data.message,
+                seen: true,
+            };
+            socket.to(sender._id.toString()).emit("seen", { message: newMessage });
 
-                                for (let i = 0; i < room.messages.length; i++) {
-                                    if (room.messages[i].index === data.index) {
-                                        room.messages[i].seen = true;
-                                        firstSeenIndex = i;
-                                        // notSeenCount = i;
-                                    }
-                                }
+            const receiver = await userByName(data.message.receiver);
+            if (!receiver) {
+                return;
+            }
 
-                                if (firstSeenIndex !== null) {
-                                    let max: number = Math.min(
-                                        firstSeenIndex + 200,
-                                        room.messages.length
-                                    );
+            const roomId = roomIdWith(sender._id.toString(), receiver);
+            if (!roomId) {
+                return;
+            }
 
-                                    for (let i = firstSeenIndex; i < max; i++) {
-                                        room.messages[i].seen = true;
-                                    }
-                                }
+            const room = await RoomModel.findById(roomId);
+            if (!room) {
+                return;
+            }
 
-                                await room.save();
-
-                                if (data.is_last) {
-                                    await addLastMessageToRoom(
-                                        sender,
-                                        receiver,
-                                        newMessage,
-                                        roomId
-                                    );
-                                }
-
-                                const newSender = await userByName(data.message.sender);
-                                if (newSender) {
-                                    socket.to(newSender._id.toString()).emit("menu", {
-                                        user: newSender,
-                                        success: true,
-                                    });
-                                }
-                            }
-                        }
-                    }
+            let firstSeenIndex: number | null = null;
+            for (let i = 0; i < room.messages.length; i++) {
+                if (room.messages[i].index === data.index) {
+                    room.messages[i].seen = true;
+                    firstSeenIndex = i;
+                    // notSeenCount = i;
                 }
+            }
+            if (firstSeenIndex !== null) {
+                let max: number = Math.min(firstSeenIndex + 200, room.messages.length);
+                for (let i = firstSeenIndex; i < max; i++) {
+                    room.messages[i].seen = true;
+                }
+            }
+
+            await room.save();
+
+            if (data.is_last) {
+                await addLastMessageToRoom(sender, receiver, newMessage, roomId);
+            }
+
+            const newSender = await userByName(data.message.sender);
+            if (newSender) {
+                socket.to(newSender._id.toString()).emit("menu", {
+                    user: newSender,
+                    success: true,
+                });
             }
         }
     );
@@ -194,14 +202,15 @@ io.on("connection", (socket: Socket) => {
         login(socket, data);
     });
 
-    socket.on("join", (data: { token: string; id: string }) => {
-        if (isAuthorized(data.token)) {
-            if (!room) {
-                socket.join(data.id);
-                room = data.id;
-            }
-        } else {
+    socket.on("join", async (data: { token: string; id: string }) => {
+        // console.log("socket.on join executed");
+        if (!isAuthorized(data.token)) {
             socket.emit("join", { success: false, message: "Token not provided" });
+            return;
+        }
+        const user = await userById(data.id);
+        if (user) {
+            socket.join([data.id, user.username]);
         }
         // console.log(`User joined room ${data.id}`);
     });
@@ -215,90 +224,93 @@ io.on("connection", (socket: Socket) => {
             content: string;
             time: Date;
         }) => {
+            // console.log("socket.on message executed");
+            // console.time("socket.on message performance");
             try {
-                if (isAuthorized(data.token)) {
-                    const message: Message = {
-                        ms: (performance.now() * 1000).toString(),
-                        index: 0,
-                        sender: data.sender,
-                        receiver: data.receiver,
-                        content: data.content,
-                        seen: false,
-                        time: data.time,
-                    };
-                    const sender = await userByName(data.sender);
-                    const receiver = await userByName(data.receiver);
-                    if (sender && receiver) {
-                        const roomId = roomIdWith(sender._id.toString(), receiver);
-                        if (roomId) {
-                            let index: number = 0;
-                            for (let i = 0; i < sender.rooms.length; i++) {
-                                if (sender.rooms[i].id === roomId) {
-                                    index = sender.rooms[i].last_message.index + 1;
-                                    message.index = index;
-                                }
-                            }
+                if (!isAuthorized(data.token)) {
+                    socket.emit("message", { success: false, message: "Token not provided" });
+                    return;
+                }
 
-                            socket.to(receiver._id.toString()).emit("message", {
-                                success: true,
-                                message: message,
-                            });
+                const message: Message = {
+                    ms: (performance.now() * 1000).toString(),
+                    index: 0,
+                    sender: data.sender,
+                    receiver: data.receiver,
+                    content: data.content,
+                    seen: false,
+                    time: data.time,
+                };
 
-                            socket.emit("message", { success: true, message: message });
+                socket.to(data.receiver).emit("message", {
+                    success: true,
+                    message: message,
+                });
 
-                            await addMessageToRoom(message, roomId);
+                socket.emit("message", { success: true, message: message });
 
-                            await addLastMessageToRoom(sender, receiver, message, roomId);
+                const [isMessageAdded, roomId] = await addMessageToRoomByParticipants(
+                    data.sender,
+                    data.receiver,
+                    message
+                );
+                // console.log("socket.on message: added message");
 
-                            const newReceiver = await userByName(data.receiver);
-                            if (newReceiver) {
-                                socket.to(newReceiver._id.toString()).emit("menu", {
-                                    user: newReceiver,
-                                    success: true,
-                                });
-                            }
+                const [sender, receiver] = await Promise.all([
+                    userByName(data.sender),
+                    userByName(data.receiver),
+                ]);
+                // console.log("socket.on message: got sender receiver from db");
 
-                            const newSender = await userByName(data.sender);
-                            if (newSender) {
-                                socket.emit("menu", {
-                                    user: newSender,
-                                    success: true,
-                                });
-                            }
-                        } else {
-                            socket
-                                .to(receiver._id.toString())
-                                .emit("message", { success: true, message: message });
+                if (!sender || !receiver) {
+                    socket.emit("message", { success: false, message: "User not found" });
+                    return;
+                }
 
-                            socket.emit("message", { success: true, message: message });
+                if (isMessageAdded && roomId) {
+                    await addLastMessageToRoom(sender, receiver, message, roomId);
+                    // console.log("socket.on message: added last message to userrooms");
 
-                            await createRoom(sender, receiver, message, 2);
+                    const [newSender, newReceiver] = await Promise.all([
+                        userByName(data.sender),
+                        userByName(data.receiver),
+                    ]);
+                    // console.log("socket.on message: got new receiver, sender ");
 
-                            const newReceiver = await userByName(data.receiver);
-                            if (newReceiver) {
-                                socket.to(newReceiver._id.toString()).emit("menu", {
-                                    user: newReceiver,
-                                    success: true,
-                                });
-                            }
-
-                            const newSender = await userByName(data.sender);
-                            if (newSender) {
-                                socket.emit("menu", {
-                                    user: newSender,
-                                    success: true,
-                                });
-                            }
-                        }
-                    } else {
-                        socket.emit("message", { success: false, message: "User not found" });
+                    if (newReceiver && newSender) {
+                        socket.to(newReceiver._id.toString()).emit("menu", {
+                            user: newReceiver,
+                            success: true,
+                        });
+                        socket.emit("menu", {
+                            user: newSender,
+                            success: true,
+                        });
                     }
                 } else {
-                    socket.emit("message", { success: false, message: "Token not provided" });
+                    await createRoom(sender, receiver, message, 2);
+
+                    const [newSender, newReceiver] = await Promise.all([
+                        userByName(data.sender),
+                        userByName(data.receiver),
+                    ]);
+
+                    if (newReceiver && newSender) {
+                        socket.to(newReceiver._id.toString()).emit("menu", {
+                            user: newReceiver,
+                            success: true,
+                        });
+                        socket.emit("menu", {
+                            user: newSender,
+                            success: true,
+                        });
+                    }
                 }
             } catch (e) {
-                console.log(e);
+                console.log("socket.on message", e);
             }
+
+            // console.timeEnd("socket.on message performance");
         }
     );
 

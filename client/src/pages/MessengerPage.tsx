@@ -57,8 +57,6 @@ const MessengerPage = ({
             success: boolean;
             new_messages_marker: number | null;
         }) => {
-            console.log("data of profile", data);
-
             if (data.new_messages_marker !== null) {
                 setNewMessagesMarker(data.new_messages_marker);
             } else {
@@ -285,7 +283,7 @@ const MessengerPage = ({
                         }}
                     >
                         {chat && state === "chat" && (
-                            <div className="h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse">
+                            <div id="chat-scrollable" className="h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse">
                                 {currentRoomWith in chat &&
                                     chat[currentRoomWith].length !== 0 &&
                                     socket && (

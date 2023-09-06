@@ -40,9 +40,7 @@ const ChatMessage = ({
                     )}
                     <div
                         id={message.index.toString()}
-                        className={`${
-                            readyForSeen ? "block" : "hidden"
-                        } flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right`}
+                        className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right`}
                         ref={ref}
                     >
                         <div
@@ -81,9 +79,7 @@ const ChatMessage = ({
                     )}
                     <div
                         id={message.index.toString()}
-                        className={`${
-                            readyForSeen ? "block" : "hidden"
-                        } flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]`}
+                        className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]`}
                         ref={ref}
                     >
                         <div
