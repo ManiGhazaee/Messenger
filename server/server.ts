@@ -12,6 +12,7 @@ import {
     createRoom,
     addMessageToRoom,
     addLastMessageToRoom,
+    findNewMessagesIndexMarker,
 } from "./functions/account";
 import mongoose from "mongoose";
 import { isAuthorized } from "./functions/auth";
@@ -80,11 +81,14 @@ io.on("connection", (socket: Socket) => {
             if (user) {
                 const roomId = roomIdWith(data.id, user);
                 if (roomId) {
-                    const messages = await getRoom(roomId, 40);
+                    const messages = await getRoom(roomId, 100);
                     if (messages) {
+                        const newMessagesMarker = findNewMessagesIndexMarker(messages);
+
                         socket.emit("profile", {
                             success: true,
                             message: "Messages found",
+                            new_messages_marker: newMessagesMarker,
                             username: user.username,
                             bio: user.bio,
                             room_id: roomId,
@@ -132,25 +136,48 @@ io.on("connection", (socket: Socket) => {
                         const roomId = roomIdWith(sender._id.toString(), receiver);
                         if (roomId) {
                             const room = await RoomModel.findById(roomId);
+                            // let notSeenCount: number | null = null;
+
                             if (room) {
+                                let firstSeenIndex: number | null = null;
+
                                 for (let i = 0; i < room.messages.length; i++) {
                                     if (room.messages[i].index === data.index) {
                                         room.messages[i].seen = true;
+                                        firstSeenIndex = i;
+                                        // notSeenCount = i;
                                     }
                                 }
+
+                                if (firstSeenIndex !== null) {
+                                    let max: number = Math.min(
+                                        firstSeenIndex + 200,
+                                        room.messages.length
+                                    );
+
+                                    for (let i = firstSeenIndex; i < max; i++) {
+                                        room.messages[i].seen = true;
+                                    }
+                                }
+
                                 await room.save();
-                            }
 
-                            if (data.is_last) {
-                                await addLastMessageToRoom(sender, receiver, newMessage, roomId);
-                            }
+                                if (data.is_last) {
+                                    await addLastMessageToRoom(
+                                        sender,
+                                        receiver,
+                                        newMessage,
+                                        roomId
+                                    );
+                                }
 
-                            const newSender = await userByName(data.message.sender);
-                            if (newSender) {
-                                socket.to(newSender._id.toString()).emit("menu", {
-                                    user: newSender,
-                                    success: true,
-                                });
+                                const newSender = await userByName(data.message.sender);
+                                if (newSender) {
+                                    socket.to(newSender._id.toString()).emit("menu", {
+                                        user: newSender,
+                                        success: true,
+                                    });
+                                }
                             }
                         }
                     }

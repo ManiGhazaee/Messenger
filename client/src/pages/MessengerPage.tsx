@@ -36,6 +36,8 @@ const MessengerPage = ({
     const [searchState, setSearchState] = useState<boolean>(false);
     const [chatUsername, setChatUsername] = useState<string | null>(null);
 
+    const [newMessagesMarker, setNewMessagesMarker] = useState<number | null>(null);
+
     const [chat, setChat] = useState<TChat>({
         [username || ""]: [],
     });
@@ -53,8 +55,16 @@ const MessengerPage = ({
             messages: Message[];
             message: string;
             success: boolean;
+            new_messages_marker: number | null;
         }) => {
             console.log("data of profile", data);
+
+            if (data.new_messages_marker !== null) {
+                setNewMessagesMarker(data.new_messages_marker);
+            } else {
+                setNewMessagesMarker(null);
+            }
+
             if ("messages" in data && data.messages && data.messages.length) {
                 deleteMessagesFor(username, setChat, data.messages[0]);
                 for (let i = data.messages.length - 1; i >= 0; i--) {
@@ -69,6 +79,7 @@ const MessengerPage = ({
 
     const sendPrivateMessage = () => {
         if (messageInput.trim().length === 0) return;
+        if (state !== "chat") return;
         if (socket) {
             socket.emit("message", {
                 token,
@@ -104,15 +115,23 @@ const MessengerPage = ({
     };
 
     useSocket(socket, "seen", (data: { message: Message }) => {
-        console.log("data of seen", data);
         setChat((prev) => {
             let obj = { ...prev };
+            let firstSeenIndex: number | null = null;
+
             if (obj && currentRoomWith && obj[currentRoomWith]) {
                 for (let i = obj[currentRoomWith].length - 1; i >= 0; i--) {
                     if (obj[currentRoomWith][i].index === data.message.index) {
-                        obj[currentRoomWith][i] = data.message;
+                        obj[currentRoomWith][i].seen = true;
+                        firstSeenIndex = i;
                         break;
                     }
+                }
+            }
+
+            if (firstSeenIndex !== null) {
+                for (let i = firstSeenIndex; i >= 0; i--) {
+                    obj[currentRoomWith][i].seen = true;
                 }
             }
 
@@ -236,7 +255,7 @@ const MessengerPage = ({
                             menu.rooms.length !== 0 &&
                             menu.rooms.map((elem) => (
                                 <div
-                                    className="h-[60px] flex flex-row w-[100%] hover:bg-slate-300 border-borders group cursor-pointer duration-200"
+                                    className="h-[60px] flex flex-row w-[100%] hover:bg-slate-300 border-borders group cursor-pointer duration-200 overflow-hidden"
                                     onClick={() => userOnClick(elem.username)}
                                 >
                                     <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-slate-800"></div>
@@ -245,7 +264,9 @@ const MessengerPage = ({
                                             {elem.username}
                                         </div>
                                         <div className="text-[14px] mt-[0px] ml-[10px] group-hover:text-black duration-200">
-                                            {elem.last_message.content}
+                                            {elem.last_message.content.length > 25
+                                                ? elem.last_message.content.slice(0, 25) + "..."
+                                                : elem.last_message.content}
                                         </div>
                                     </div>
                                 </div>
@@ -256,8 +277,14 @@ const MessengerPage = ({
                         className={`${
                             state === "chat" ? "w-full" : "w-0"
                         } flex-grow bg-gray-800 h-auto overflow-hidden relative`}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                sendPrivateMessage();
+                                setMessageInput(() => "");
+                            }
+                        }}
                     >
-                        {chat && (
+                        {chat && state === "chat" && (
                             <div className="h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse">
                                 {currentRoomWith in chat &&
                                     chat[currentRoomWith].length !== 0 &&
@@ -267,6 +294,7 @@ const MessengerPage = ({
                                             selfUsername={username}
                                             socket={socket}
                                             onSeenFn={onSeen}
+                                            newMessagesMarker={newMessagesMarker}
                                         />
                                     )}
                             </div>
@@ -281,6 +309,11 @@ const MessengerPage = ({
                                     value={messageInput}
                                     onChange={(e) => setMessageInput(e.target.value)}
                                     placeholder="Text Message"
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                 />
                             </div>
                             <button

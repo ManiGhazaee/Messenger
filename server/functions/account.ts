@@ -219,7 +219,15 @@ export async function getRoom(id: string, limit: number) {
             return false;
         }
 
-        return room.messages.slice(0, Math.min(limit, room.messages.length));
+        let limitBySeen = 0;
+        for (let i = 0; i < room.messages.length; i++) {
+            if (room.messages[i].seen) {
+                limitBySeen = i;
+                break;
+            }
+        }
+
+        return room.messages.slice(0, Math.min(limitBySeen + limit, room.messages.length));
     } catch (e) {
         console.log(e);
         return false;
@@ -283,7 +291,7 @@ export async function createRoom(
             id: newRoom._id.toString(),
             username: receiver.username,
             with: receiver._id.toString(),
-            last_message: message ,
+            last_message: message,
             not_seen_count: 1,
             is_muted: false,
         });
@@ -340,4 +348,14 @@ export async function addLastMessageToRoom(
     } catch (e) {
         console.log(e);
     }
+}
+
+export function findNewMessagesIndexMarker(messages: Message[]): number | null {
+    if (messages[0].seen) return null;
+    for (let i = 1; i < messages.length; i++) {
+        if (messages[i].seen) {
+            return messages[i - 1].index;
+        }
+    }
+    return messages[messages.length - 1].index;
 }
