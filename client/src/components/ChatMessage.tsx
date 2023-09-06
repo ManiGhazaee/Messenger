@@ -25,7 +25,6 @@ const ChatMessage = ({
     useEffect(() => {
         if (inView && selfUsername === message.receiver && readyForSeen) {
             onSeenFn(chatIndex, message);
-            console.log(message.content, "SEEN");
         }
     }, [inView, onSeenFn]);
 

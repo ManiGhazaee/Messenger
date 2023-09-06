@@ -54,12 +54,31 @@ const Chat = ({
         }
     }, [messagesRef.current]);
 
+    const scrollToBottomOnClick = () => {
+        const chatScrollable = document.getElementById("chat-scrollable");
+        if (chatScrollable) {
+            chatScrollable.scrollTo({
+                top: chatScrollable.offsetHeight,
+                behavior: "smooth",
+            });
+        }
+    };
+
     return (
         <>
             <div id="chat-cont" className="text-[14px]" ref={chatContRef}>
-                <div className="bg-white text-black w-fit h-fit absolute top-0 left-0">
-                    {autoScrollInView.toString()}
-                </div>
+                {
+                    <div
+                        className={`${
+                            autoScrollInView
+                                ? "bottom-[40px] opacity-0"
+                                : "bottom-[50px] opacity-100"
+                        } text-white duration-300 text-[40px] w-fit h-fit fixed right-[5px] z-[100]`}
+                        onClick={scrollToBottomOnClick}
+                    >
+                        <i className="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+                }
 
                 <div ref={messagesRef}>
                     {selfUsername &&
@@ -91,7 +110,7 @@ const Chat = ({
                 <p
                     ref={autoScrollRef}
                     id="auto-scroll"
-                    className="w-full absolute bottom-0 h-[140px]"
+                    className="w-full absolute bottom-0 h-[40px]"
                 ></p>
             </div>
         </>

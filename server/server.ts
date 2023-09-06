@@ -10,7 +10,6 @@ import {
     userById,
     search,
     createRoom,
-    addMessageToRoom,
     addLastMessageToRoom,
     findNewMessagesIndexMarker,
     addMessageToRoomByParticipants,

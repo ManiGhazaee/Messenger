@@ -25,3 +25,13 @@ html {
 ::-webkit-scrollbar-thumb {
     background-color: #333;
 }
+
+.scroll-to-bottom {
+    transform: translateY(10px);
+    animation: scrollToBottom 1s forwards;
+}
+@keyframes scrollToBottom {
+    100% {
+        transform: translateY(0);
+    }
+}
