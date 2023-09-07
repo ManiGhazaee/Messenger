@@ -27,6 +27,7 @@ const ChatMessage = ({
     useEffect(() => {
         if (inView && selfUsername === message.receiver && readyForSeen) {
             onSeenFn(chatIndex, message);
+            console.log(message.content, "seen");
         }
     }, [inView, onSeenFn, readyForSeen]);
 
@@ -76,6 +77,10 @@ const ChatMessage = ({
                             {message.seen ? (
                                 <span className="ml-[0px] inline-block w-[12px] text-right">
                                     <i className="bi bi-check2-all absolute bottom-[3px] right-[8px]"></i>
+                                </span>
+                            ) : !message.seen && message.status === "WAITING" ? (
+                                <span className="ml-[0px] inline-block w-[12px] text-right">
+                                    <i className="bi bi-clock absolute text-[11px] bottom-[4px] right-[8px]"></i>
                                 </span>
                             ) : (
                                 <span className="ml-[0px] inline-block w-[12px] text-right">

@@ -217,20 +217,17 @@ export async function addMessageToRoomByParticipants(
     message: Message
 ): Promise<[boolean, string | null]> {
     try {
-        console.time("addMessageToRoomByParticipants performance");
         const room = await RoomModel.findOne({
             participants: { $all: [senderName, receiverName] },
         });
 
         if (room) {
-            message.index = room.messages.length;
             await RoomModel.findByIdAndUpdate(room._id.toString(), {
                 $push: { messages: { $each: [message], $position: 0 } },
             });
             return [true, room._id.toString()];
         }
 
-        console.timeEnd("addMessageToRoomByParticipants performance");
         return [false, null];
     } catch (e) {
         console.log("addMessageToRoomByParticipants", e);
@@ -299,7 +296,6 @@ export async function createRoom(
             participants: [sender.username, receiver.username],
             messages: [
                 {
-                    ms: message.ms,
                     index: 0,
                     sender: message.sender,
                     receiver: message.receiver,

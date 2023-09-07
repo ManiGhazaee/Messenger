@@ -12,9 +12,11 @@ const Setting = ({
             <div
                 id="setting-backdrop"
                 style={{
-                    display: settingState ? "block" : "none",
+                    opacity: settingState ? "1" : "0",
+                    transition: "opacity 300ms",
+                    width: settingState ? "100vw" : "0",
                 }}
-                className="h-screen w-screen z-[100] backdrop-blur-sm fixed top-0 left-0"
+                className="h-screen z-[100] backdrop-blur-sm fixed top-0 left-0"
                 onClick={() => {
                     setSettingState(false);
                 }}

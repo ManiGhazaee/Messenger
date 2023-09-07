@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Socket } from "socket.io-client";
 import useSocket from "../components/useSocket";
-import { addMessage, deleteMessagesFor } from "../ts/utils";
+import { addMessage, deleteMessagesFor, setMessageStatusToSuccess } from "../ts/utils";
 import Chat from "../components/Chat";
 import Loading from "../components/Loading";
 import Setting from "../components/Setting";
@@ -73,9 +73,14 @@ const MessengerPage = ({
         }
     );
     useSocket(socket, "message", (data: { message: Message; success: boolean }) => {
-        addMessage(username, setChat, data.message);
+        if (data.message.sender === username) {
+            setMessageStatusToSuccess(username, setChat, data.message);
+        } else {
+            addMessage(username, setChat, data.message);
+        }
     });
     useSocket(socket, "seen", (data: { message: Message }) => {
+        console.log("seen data", data);
         setChat((prev) => {
             let obj = { ...prev };
             let firstSeenIndex: number | null = null;
@@ -102,10 +107,44 @@ const MessengerPage = ({
 
     const sendPrivateMessage = () => {
         if (messageInput.trim().length === 0) return;
+        if (!username) return;
         if (state !== "chat") return;
+
+        let messageIndex: number;
+        if (chat && currentRoomWith && chat[currentRoomWith] && chat[currentRoomWith].length > 0) {
+            messageIndex = chat[currentRoomWith][chat[currentRoomWith].length - 1].index + 1;
+        } else {
+            messageIndex = 0;
+        }
+
+        const message: Message = {
+            status: "WAITING",
+            index: messageIndex,
+            sender: username,
+            receiver: currentRoomWith,
+            seen: false,
+            content: messageInput,
+            time: new Date(),
+        };
+
+        setChat((prev) => {
+            let obj: TChat = { ...prev };
+            if (message.receiver in obj) {
+                if (
+                    obj[message.receiver][obj[message.receiver].length - 1].index !== message.index
+                ) {
+                    obj[message.receiver].push(message);
+                }
+            } else {
+                obj[message.receiver] = [message];
+            }
+            return obj;
+        });
+
         if (socket) {
             socket.emit("message", {
                 token,
+                index: messageIndex,
                 sender: username,
                 receiver: currentRoomWith,
                 content: messageInput,

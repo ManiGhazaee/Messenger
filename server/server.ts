@@ -136,19 +136,15 @@ io.on("connection", (socket: Socket) => {
                 return;
             }
 
-            const sender = await userByName(data.message.sender);
-            if (!sender) {
-                return;
-            }
+            data.message.seen = true;
 
-            const newMessage: Message = {
-                ...data.message,
-                seen: true,
-            };
-            socket.to(sender._id.toString()).emit("seen", { message: newMessage });
+            socket.to(data.message.sender).emit("seen", { message: data.message });
 
-            const receiver = await userByName(data.message.receiver);
-            if (!receiver) {
+            const [sender, receiver] = await Promise.all([
+                userByName(data.message.sender),
+                userByName(data.message.receiver),
+            ]);
+            if (!sender || !receiver) {
                 return;
             }
 
@@ -180,7 +176,7 @@ io.on("connection", (socket: Socket) => {
             await room.save();
 
             if (data.is_last) {
-                await addLastMessageToRoom(sender, receiver, newMessage, roomId);
+                await addLastMessageToRoom(sender, receiver, data.message, roomId);
             }
 
             const newSender = await userByName(data.message.sender);
@@ -218,6 +214,7 @@ io.on("connection", (socket: Socket) => {
         "message",
         async (data: {
             token: string;
+            index: number;
             sender: string;
             receiver: string;
             content: string;
@@ -232,8 +229,7 @@ io.on("connection", (socket: Socket) => {
                 }
 
                 const message: Message = {
-                    ms: (performance.now() * 1000).toString(),
-                    index: 0,
+                    index: data.index,
                     sender: data.sender,
                     receiver: data.receiver,
                     content: data.content,
@@ -254,6 +250,10 @@ io.on("connection", (socket: Socket) => {
                     message
                 );
                 // console.log("socket.on message: added message");
+
+                // if (messageIndex !== null) {
+                //     message.index = messageIndex;
+                // }
 
                 const [sender, receiver] = await Promise.all([
                     userByName(data.sender),

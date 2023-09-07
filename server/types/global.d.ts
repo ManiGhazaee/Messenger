@@ -6,7 +6,6 @@ type Room = {
 };
 
 type Message = {
-    ms: string;
     index: number;
     sender: string;
     receiver: string;

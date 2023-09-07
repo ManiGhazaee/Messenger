@@ -6,7 +6,7 @@ type Room = {
 };
 
 type Message = {
-    ms: string;
+    status: "WAITING" | "SUCCESS" | "FAILED";
     index: number;
     sender: string;
     receiver: string;

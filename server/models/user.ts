@@ -32,7 +32,6 @@ const userSchema = new mongoose.Schema<DUser>({
                 username: String,
                 with: String,
                 last_message: {
-                    ms: String,
                     index: Number,
                     sender: String,
                     receiver: String,
