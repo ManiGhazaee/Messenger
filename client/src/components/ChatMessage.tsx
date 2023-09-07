@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 
 const ChatMessage = ({
@@ -18,6 +18,8 @@ const ChatMessage = ({
     readyForSeen: boolean;
     newMessagesMarker: number | null;
 }) => {
+    const [newMessagesMarkerDisplay, setNewMessagesMarkerDisplay] = useState<boolean>(true);
+
     const { ref, inView } = useInView({
         threshold: 0,
     });
@@ -26,14 +28,28 @@ const ChatMessage = ({
         if (inView && selfUsername === message.receiver && readyForSeen) {
             onSeenFn(chatIndex, message);
         }
-    }, [inView, onSeenFn]);
+    }, [inView, onSeenFn, readyForSeen]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setNewMessagesMarkerDisplay(false);
+        }, 5000);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <>
             {type === "sender" ? (
                 <>
                     {newMessagesMarker !== null && newMessagesMarker === message.index && (
-                        <div className="w-full h-[24px] bg-cyan-400 text-black text-center">
+                        <div
+                            style={{
+                                opacity: newMessagesMarkerDisplay ? "1" : "0",
+                                height: newMessagesMarkerDisplay ? "24px" : "0px",
+                            }}
+                            className="w-full duration-300 bg-cyan-400 text-black text-center"
+                        >
                             New Messages
                         </div>
                     )}
@@ -72,7 +88,13 @@ const ChatMessage = ({
             ) : (
                 <>
                     {newMessagesMarker !== null && newMessagesMarker === message.index && (
-                        <div className="w-full h-[r4px] bg-cyan-400 text-black text-center">
+                        <div
+                            style={{
+                                opacity: newMessagesMarkerDisplay ? "1" : "0",
+                                height: newMessagesMarkerDisplay ? "24px" : "0px",
+                            }}
+                            className="w-full duration-300 bg-cyan-400 text-black text-center"
+                        >
                             New Messages
                         </div>
                     )}

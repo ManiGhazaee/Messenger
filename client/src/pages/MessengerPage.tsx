@@ -3,6 +3,7 @@ import { Socket } from "socket.io-client";
 import useSocket from "../components/useSocket";
 import { addMessage, deleteMessagesFor } from "../ts/utils";
 import Chat from "../components/Chat";
+import Loading from "../components/Loading";
 
 type SearchResult = {
     success: boolean;
@@ -32,11 +33,13 @@ const MessengerPage = ({
     const [searchInput, setSearchInput] = useState<string>("");
     const [currentRoomWith, setCurrentRoomWith] = useState<string>("");
 
-    const [state, setState] = useState<"menu" | "setting" | "chat">("menu");
+    const [state, setState] = useState<"menu" | "chat">("menu");
     const [searchState, setSearchState] = useState<boolean>(false);
+    const [settingState, setSettingState] = useState<boolean>(false);
     const [chatUsername, setChatUsername] = useState<string | null>(null);
 
     const [newMessagesMarker, setNewMessagesMarker] = useState<number | null>(null);
+    const [profileResponseMessage, setProfileResponseMessage] = useState<string | null>(null);
 
     const [chat, setChat] = useState<TChat>({
         [username || ""]: [],
@@ -57,6 +60,10 @@ const MessengerPage = ({
             success: boolean;
             new_messages_marker: number | null;
         }) => {
+            if (data.message === "No messages") {
+                setProfileResponseMessage("No Messages Found");
+                return;
+            }
             if (data.new_messages_marker !== null) {
                 setNewMessagesMarker(data.new_messages_marker);
             } else {
@@ -108,8 +115,12 @@ const MessengerPage = ({
     };
 
     const moreOnClick = () => {
-        setState("setting");
+        setState("menu");
+        if (state === "menu") {
+            setSettingState(true);
+        }
         setChatUsername(null);
+        setProfileResponseMessage(null);
     };
 
     useSocket(socket, "seen", (data: { message: Message }) => {
@@ -161,8 +172,33 @@ const MessengerPage = ({
         });
     };
 
+    const chatMoreOptionOnClick = () => {};
+
+    console.log("profileResponseMessage", profileResponseMessage);
+
     return (
         <div className="h-screen">
+            <>
+                <div
+                    id="setting-backdrop"
+                    style={{
+                        display: settingState ? "block" : "none",
+                    }}
+                    className="h-screen w-screen z-[100] backdrop-blur-sm fixed top-0 left-0"
+                    onClick={() => {
+                        setSettingState(false);
+                    }}
+                ></div>
+                <div
+                    id="setting"
+                    style={{
+                        width: settingState ? "300px" : "0px",
+                        opacity: settingState ? "1" : "0",
+                    }}
+                    className="fixed left-0 z-[120] top-0 bg-black border-r duration-300 border-borders h-screen"
+                ></div>
+            </>
+
             <div
                 id="nav"
                 className="flex flex-row w-full py-[14px] px-[18px] border-b-[1px] border-borders relative"
@@ -185,16 +221,26 @@ const MessengerPage = ({
                     )}
                     {chatUsername ? chatUsername : "Messenger"}
                 </div>
-                <div
-                    onClick={() => setSearchState(!searchState)}
-                    className="absolute right-[31px] top-[31px]"
-                >
-                    {searchState ? (
-                        <i className="bi bi-x-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
-                    ) : (
-                        <i className="bi bi-search absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
-                    )}
-                </div>
+                {state === "menu" && (
+                    <div
+                        onClick={() => setSearchState(!searchState)}
+                        className="absolute right-[31px] top-[31px] cursor-pointer"
+                    >
+                        {searchState ? (
+                            <i className="bi bi-x-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
+                        ) : (
+                            <i className="bi bi-search absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
+                        )}
+                    </div>
+                )}
+                {state === "chat" && (
+                    <div
+                        onClick={() => chatMoreOptionOnClick()}
+                        className="absolute right-[31px] top-[31px] cursor-pointer"
+                    >
+                        <i className="bi bi-three-dots-vertical absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
+                    </div>
+                )}
             </div>
             <div className="flex flex-col h-[calc(100%-62px)]">
                 <div
@@ -208,7 +254,7 @@ const MessengerPage = ({
                             type="text"
                             name=""
                             id="search-input"
-                            className="bg-black border-[1px] border-borders flex-grow text-[18px] rounded-full pl-3 py-1 outline-none h-full"
+                            className="bg-black border-[1px] border-borders flex-grow text-[14px] rounded-full pl-3 py-1 outline-none h-full"
                             autoComplete="off"
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
@@ -222,19 +268,23 @@ const MessengerPage = ({
                             <i className="bi bi-search absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
                         </button>
                     </div>
-                    {searchResult &&
-                        searchResult.users.length !== 0 &&
-                        searchResult.users.map((elem) => (
-                            <div
-                                className="h-[60px] flex flex-row w-[calc(100%-36px)] ml-[18px] my-[10px] border border-borders rounded-full group hover:bg-white cursor-pointer duration-200"
-                                onClick={() => userOnClick(elem.username)}
-                            >
-                                <div className="h-3/4 my-[7px] mx-[7px] aspect-square rounded-full bg-slate-800"></div>
-                                <div className="text-[22px] my-[12px] ml-[10px] group-hover:text-black duration-200">
-                                    {elem.username}
+                    <div className="ml-[18px] mt-[14px] w-[calc(100%-36px)] h-[calc(100%-80px)] overflow-y-scroll">
+                        {searchResult &&
+                            searchResult.users.length !== 0 &&
+                            searchResult.users.map((elem) => (
+                                <div
+                                    className="h-[60px] flex flex-row w-[100%] hover:bg-slate-300 border-borders group cursor-pointer duration-200 overflow-hidden"
+                                    onClick={() => userOnClick(elem.username)}
+                                >
+                                    <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-slate-800"></div>
+                                    <div className="flex flex-col">
+                                        <div className="text-[18px] mt-[14px] ml-[10px] group-hover:text-black duration-200">
+                                            {elem.username}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                    </div>
                 </div>
                 <div
                     id="main"
@@ -245,7 +295,7 @@ const MessengerPage = ({
                     <div
                         id="menu"
                         className={`${
-                            state === "menu" || state === "setting" ? "w-full" : "w-0"
+                            state === "menu" ? "w-full" : "w-0"
                         } sm:w-[400px] bg-gray-500 h-full duration-200 overflow-y-scroll`}
                     >
                         {menu &&
@@ -283,18 +333,29 @@ const MessengerPage = ({
                         }}
                     >
                         {chat && state === "chat" && (
-                            <div id="chat-scrollable" className="h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse">
+                            <div
+                                id="chat-scrollable"
+                                className="h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse"
+                            >
                                 {currentRoomWith in chat &&
-                                    chat[currentRoomWith].length !== 0 &&
-                                    socket && (
-                                        <Chat
-                                            chat={chat[currentRoomWith]}
-                                            selfUsername={username}
-                                            socket={socket}
-                                            onSeenFn={onSeen}
-                                            newMessagesMarker={newMessagesMarker}
-                                        />
-                                    )}
+                                chat[currentRoomWith].length !== 0 &&
+                                socket ? (
+                                    <Chat
+                                        chat={chat[currentRoomWith]}
+                                        selfUsername={username}
+                                        socket={socket}
+                                        onSeenFn={onSeen}
+                                        newMessagesMarker={newMessagesMarker}
+                                    />
+                                ) : (
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-1 py-1 bg-slate-900 rounded-2xl text-[14px]">
+                                        {profileResponseMessage !== null ? (
+                                            profileResponseMessage
+                                        ) : (
+                                            <Loading color="white" />
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
 
