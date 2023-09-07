@@ -1,15 +1,12 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Socket } from "socket.io-client";
 import useSocket from "../components/useSocket";
 import { addMessage, deleteMessagesFor } from "../ts/utils";
 import Chat from "../components/Chat";
 import Loading from "../components/Loading";
-
-type SearchResult = {
-    success: boolean;
-    message: string;
-    users: { username: string; bio: string }[];
-};
+import Setting from "../components/Setting";
+import Search from "../components/Search";
+import Nav from "../components/Nav";
 
 export type TChat = {
     [key: string]: Message[];
@@ -32,15 +29,12 @@ const MessengerPage = ({
     const [searchResult, setSearchResult] = useState<SearchResult>();
     const [searchInput, setSearchInput] = useState<string>("");
     const [currentRoomWith, setCurrentRoomWith] = useState<string>("");
-
     const [state, setState] = useState<"menu" | "chat">("menu");
     const [searchState, setSearchState] = useState<boolean>(false);
     const [settingState, setSettingState] = useState<boolean>(false);
     const [chatUsername, setChatUsername] = useState<string | null>(null);
-
     const [newMessagesMarker, setNewMessagesMarker] = useState<number | null>(null);
     const [profileResponseMessage, setProfileResponseMessage] = useState<string | null>(null);
-
     const [chat, setChat] = useState<TChat>({
         [username || ""]: [],
     });
@@ -80,6 +74,30 @@ const MessengerPage = ({
     );
     useSocket(socket, "message", (data: { message: Message; success: boolean }) => {
         addMessage(username, setChat, data.message);
+    });
+    useSocket(socket, "seen", (data: { message: Message }) => {
+        setChat((prev) => {
+            let obj = { ...prev };
+            let firstSeenIndex: number | null = null;
+
+            if (obj && currentRoomWith && obj[currentRoomWith]) {
+                for (let i = obj[currentRoomWith].length - 1; i >= 0; i--) {
+                    if (obj[currentRoomWith][i].index === data.message.index) {
+                        obj[currentRoomWith][i].seen = true;
+                        firstSeenIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (firstSeenIndex !== null) {
+                for (let i = firstSeenIndex; i >= 0; i--) {
+                    obj[currentRoomWith][i].seen = true;
+                }
+            }
+
+            return obj;
+        });
     });
 
     const sendPrivateMessage = () => {
@@ -123,31 +141,6 @@ const MessengerPage = ({
         setProfileResponseMessage(null);
     };
 
-    useSocket(socket, "seen", (data: { message: Message }) => {
-        setChat((prev) => {
-            let obj = { ...prev };
-            let firstSeenIndex: number | null = null;
-
-            if (obj && currentRoomWith && obj[currentRoomWith]) {
-                for (let i = obj[currentRoomWith].length - 1; i >= 0; i--) {
-                    if (obj[currentRoomWith][i].index === data.message.index) {
-                        obj[currentRoomWith][i].seen = true;
-                        firstSeenIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            if (firstSeenIndex !== null) {
-                for (let i = firstSeenIndex; i >= 0; i--) {
-                    obj[currentRoomWith][i].seen = true;
-                }
-            }
-
-            return obj;
-        });
-    });
-
     const onSeen = (index: number, message: Message) => {
         if (message.seen) return;
         let is_last = false;
@@ -172,120 +165,28 @@ const MessengerPage = ({
         });
     };
 
-    const chatMoreOptionOnClick = () => {};
-
-    console.log("profileResponseMessage", profileResponseMessage);
+    const chatMoreOnClick = () => {};
 
     return (
         <div className="h-screen">
-            <>
-                <div
-                    id="setting-backdrop"
-                    style={{
-                        display: settingState ? "block" : "none",
-                    }}
-                    className="h-screen w-screen z-[100] backdrop-blur-sm fixed top-0 left-0"
-                    onClick={() => {
-                        setSettingState(false);
-                    }}
-                ></div>
-                <div
-                    id="setting"
-                    style={{
-                        width: settingState ? "300px" : "0px",
-                        opacity: settingState ? "1" : "0",
-                    }}
-                    className="fixed left-0 z-[120] top-0 bg-black border-r duration-300 border-borders h-screen"
-                ></div>
-            </>
-
-            <div
-                id="nav"
-                className="flex flex-row w-full py-[14px] px-[18px] border-b-[1px] border-borders relative"
-            >
-                <div
-                    onClick={moreOnClick}
-                    className="flex flex-col relative text-[22px] cursor-pointer"
-                >
-                    {state === "chat" ? (
-                        <i className="bi bi-chevron-left"></i>
-                    ) : (
-                        <i className="bi bi-list"></i>
-                    )}
-                </div>
-                <div className="text-[18px] ml-4 mt-[2px] flex flex-row">
-                    {chatUsername ? (
-                        <div className="h-[33px] mt-[-2px] mr-[18px] aspect-square rounded-full bg-slate-800"></div>
-                    ) : (
-                        <></>
-                    )}
-                    {chatUsername ? chatUsername : "Messenger"}
-                </div>
-                {state === "menu" && (
-                    <div
-                        onClick={() => setSearchState(!searchState)}
-                        className="absolute right-[31px] top-[31px] cursor-pointer"
-                    >
-                        {searchState ? (
-                            <i className="bi bi-x-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
-                        ) : (
-                            <i className="bi bi-search absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
-                        )}
-                    </div>
-                )}
-                {state === "chat" && (
-                    <div
-                        onClick={() => chatMoreOptionOnClick()}
-                        className="absolute right-[31px] top-[31px] cursor-pointer"
-                    >
-                        <i className="bi bi-three-dots-vertical absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
-                    </div>
-                )}
-            </div>
+            <Setting settingState={settingState} setSettingState={setSettingState} />
+            <Nav
+                searchState={searchState}
+                setSearchState={setSearchState}
+                moreOnClick={moreOnClick}
+                state={state}
+                chatUsername={chatUsername}
+                chatMoreOnClick={chatMoreOnClick}
+            />
             <div className="flex flex-col h-[calc(100%-62px)]">
-                <div
-                    id="search"
-                    className={`bg-black w-full ${
-                        searchState ? "h-full" : "h-0"
-                    } duration-300 overflow-hidden`}
-                >
-                    <div className="flex flex-row w-[calc(100%-36px)] h-[40px] relative ml-[18px] mt-[14px]">
-                        <input
-                            type="text"
-                            name=""
-                            id="search-input"
-                            className="bg-black border-[1px] border-borders flex-grow text-[14px] rounded-full pl-3 py-1 outline-none h-full"
-                            autoComplete="off"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            placeholder="Search users"
-                        />
-                        <button
-                            id="search-button"
-                            className="border-[1px] border-borders active:bg-white active:text-black duration-100 cursor-pointer rounded-full w-[40px] h-full relative ml-[10px]"
-                            onClick={searchOnClick}
-                        >
-                            <i className="bi bi-search absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
-                        </button>
-                    </div>
-                    <div className="ml-[18px] mt-[14px] w-[calc(100%-36px)] h-[calc(100%-80px)] overflow-y-scroll">
-                        {searchResult &&
-                            searchResult.users.length !== 0 &&
-                            searchResult.users.map((elem) => (
-                                <div
-                                    className="h-[60px] flex flex-row w-[100%] hover:bg-slate-300 border-borders group cursor-pointer duration-200 overflow-hidden"
-                                    onClick={() => userOnClick(elem.username)}
-                                >
-                                    <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-slate-800"></div>
-                                    <div className="flex flex-col">
-                                        <div className="text-[18px] mt-[14px] ml-[10px] group-hover:text-black duration-200">
-                                            {elem.username}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                    </div>
-                </div>
+                <Search
+                    searchState={searchState}
+                    searchInput={searchInput}
+                    setSearchInput={setSearchInput}
+                    searchOnClick={searchOnClick}
+                    searchResult={searchResult}
+                    userOnClick={userOnClick}
+                />
                 <div
                     id="main"
                     className={`flex flex-row ${

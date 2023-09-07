@@ -73,7 +73,7 @@ const Chat = ({
                             autoScrollInView
                                 ? "bottom-[40px] opacity-0"
                                 : "bottom-[50px] opacity-100"
-                        } text-white duration-300 text-[40px] w-fit h-fit fixed right-[5px] z-[100]`}
+                        } text-white duration-300 text-[40px] w-fit h-fit fixed right-[5px] z-[100] cursor-pointer`}
                         onClick={scrollToBottomOnClick}
                     >
                         <i className="bi bi-arrow-down-circle-fill"></i>

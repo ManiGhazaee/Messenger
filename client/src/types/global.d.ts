@@ -51,3 +51,9 @@ type LoginData = {
     username_or_email: string;
     password: string;
 };
+
+type SearchResult = {
+    success: boolean;
+    message: string;
+    users: { username: string; bio: string }[];
+};
