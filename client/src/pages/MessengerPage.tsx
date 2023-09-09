@@ -261,9 +261,26 @@ const MessengerPage = ({
                                                 ? elem.last_message.content.slice(0, 25) + "..."
                                                 : elem.last_message.content}
                                         </div>
-                                        <div className="absolute top-0 left-1/2">{elem.last_message.seen.toString()}</div>
-                                        {elem.not_seen_count && elem.not_seen_count > 0 && (
-                                            <div className="absolute bg-white rounded-full h-fit px-2 py-1 min-w-[28px] text-center text-black text-[14px] right-[10px] top-1/2 -translate-y-1/2">
+
+                                        <div className="ml-[0px] h-[20px] absolute bottom-[8px] group-hover:text-black duration-200 right-[8px] inline-block w-[72px] text-right">
+                                            <div className="inline-block text-right mr-[8px] text-[12px] w-fit">{`${new Date(elem.last_message.time)
+                                                .getHours()
+                                                .toString()
+                                                .padStart(2, "0")}:${new Date(elem.last_message.time)
+                                                .getMinutes()
+                                                .toString()
+                                                .padStart(2, "0")}`}</div>
+
+                                            {elem.username === elem.last_message.receiver &&
+                                                (elem.last_message.seen ? (
+                                                    <i className="bi bi-check2-all mr-[8px]"></i>
+                                                ) : (
+                                                    <i className="bi bi-check2 mr-[8px]"></i>
+                                                ))}
+                                        </div>
+
+                                        {elem.not_seen_count > 0 && (
+                                            <div className="absolute bg-white rounded-full h-fit px-[2px] py-[3px] group-hover:bg-black group-hover:text-white duration-200 min-w-[23px] text-center text-black text-[12px] right-[14px] top-[8px] ">
                                                 {elem.not_seen_count}
                                             </div>
                                         )}

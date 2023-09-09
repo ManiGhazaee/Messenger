@@ -155,7 +155,7 @@ const Chat = ({
                         )}
                 </div>
 
-                <p ref={autoScrollRef} id="auto-scroll" className="w-full z-[-10] absolute bottom-0 h-[40px]"></p>
+                <p ref={autoScrollRef} id="auto-scroll" className="w-full z-[-10] absolute bottom-0 h-[10px]"></p>
             </div>
         </>
     );
