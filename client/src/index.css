@@ -216,3 +216,42 @@ html {
         opacity: 0.25;
     }
 }
+
+#chat-scrollable {
+    animation: chatScrollable 600ms forwards;
+    opacity: 0;
+}
+
+@keyframes chatScrollable {
+    100% {
+        opacity: 1;
+    }
+}
+
+.message {
+    animation: message 300ms forwards;
+    font-size: 0;
+    opacity: 0;
+    max-width: 70%;
+    transform: scale(0) translateX(-150px);
+}
+
+@keyframes message {
+    100% {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+        font-size: 14px;
+    }
+}
+
+.message-time {
+    animation: messageTime 300ms forwards;
+    font-size: 0;
+}
+
+@keyframes messageTime {
+    100% {
+        opacity: 1;
+        font-size: 10px;
+    }
+}

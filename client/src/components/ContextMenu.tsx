@@ -1,0 +1,81 @@
+import React, { CSSProperties, useState } from "react";
+import { createPortal } from "react-dom";
+
+type ContextMenuItems = {
+    text: string;
+    onClick: (...args: any[]) => void;
+    params?: any[];
+    style?: CSSProperties;
+}[];
+
+const ContextMenu = ({ children, items }: { children: JSX.Element | JSX.Element[]; items: ContextMenuItems }) => {
+    const [contextShow, setContextShow] = useState<boolean>(false);
+    const [clickPoint, setClickPoint] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+    const contextOnClick = (ev: React.MouseEvent<HTMLDivElement>) => {
+        const chatCont = document.getElementById("chat-scrollable");
+        if (!chatCont) return;
+        const chatWidth = chatCont.offsetWidth;
+        const chatHeight = chatCont.offsetHeight;
+
+        const rect = chatCont.getBoundingClientRect();
+
+        const chatOffsetTop = rect.top + window.scrollY;
+        const chatOffsetLeft = rect.left + window.scrollX;
+
+        let x = ev.clientX;
+        let y = ev.clientY;
+        if (ev.clientX > chatWidth / 2 + chatOffsetLeft) {
+            x = ev.clientX - 180;
+        }
+        if (ev.clientY > chatHeight / 2 + chatOffsetTop) {
+            y = ev.clientY - items.length * 30 - 8;
+        }
+        setContextShow(true);
+        setClickPoint(() => ({ x, y }));
+    };
+
+    return (
+        <>
+            {contextShow && (
+                <>
+                    {createPortal(
+                        <>
+                            <div onClick={() => setContextShow(false)} className="absolute top-0 left-0 z-[130] w-screen h-screen"></div>
+                            <div
+                                style={{
+                                    top: clickPoint.y,
+                                    left: clickPoint.x,
+                                }}
+                                className="absolute z-[180] w-[180px] bg-black rounded-xl"
+                            >
+                                {items &&
+                                    items.length !== 0 &&
+                                    items.map((elem) => (
+                                        <div
+                                            style={elem.style}
+                                            className="text-[14px] w-[calc(100%-8px)] my-[4px] active:bg-zinc-400 active:text-black mx-auto px-2 py-1 text-text_2 cursor-pointer bg-black hover:bg-zinc-800 rounded-lg"
+                                            onClick={() => {
+                                                if (elem.params) {
+                                                    elem.onClick(...elem.params);
+                                                } else {
+                                                    elem.onClick();
+                                                }
+                                                setContextShow(false);
+                                            }}
+                                        >
+                                            {elem.text}
+                                        </div>
+                                    ))}
+                            </div>
+                        </>,
+                        document.body
+                    )}
+                </>
+            )}
+            <div onClick={(e) => contextOnClick(e)}>{children}</div>
+        </>
+    );
+};
+
+export default ContextMenu;

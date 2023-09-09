@@ -47,8 +47,7 @@ export async function signup(socket: Socket, data: SignupData) {
         if (!usernameRegex.test(username)) {
             socket.emit("signup", {
                 success: false,
-                message:
-                    "Username must be between 3 to 15 characters and can only contain letters, numbers, hyphens, and underscores.",
+                message: "Username must be between 3 to 15 characters and can only contain letters, numbers, hyphens, and underscores.",
             });
             return;
         }
@@ -151,12 +150,7 @@ export async function login(socket: Socket, data: LoginData) {
                 message: "Logged in successfully",
             });
         } else {
-            console.log(
-                "User '",
-                user.username,
-                "' failed login (incorrect password) at ",
-                new Date()
-            );
+            console.log("User '", user.username, "' failed login (incorrect password) at ", new Date());
             socket.emit("login", { success: false, message: "Password incorrect" });
         }
     } catch (e) {
@@ -197,10 +191,7 @@ export async function userByName(username: string) {
     }
 }
 
-export function roomIdWith(
-    id: string,
-    user: mongoose.Document<unknown, {}, DUser> & DUser & { _id: mongoose.Types.ObjectId }
-) {
+export function roomIdWith(id: string, user: mongoose.Document<unknown, {}, DUser> & DUser & { _id: mongoose.Types.ObjectId }) {
     if (user.rooms.length === 0) return false;
 
     for (let i = 0; i < user.rooms.length; i++) {
@@ -211,11 +202,7 @@ export function roomIdWith(
     return false;
 }
 
-export async function addMessageToRoomByParticipants(
-    senderName: string,
-    receiverName: string,
-    message: Message
-): Promise<[boolean, string | null]> {
+export async function addMessageToRoomByParticipants(senderName: string, receiverName: string, message: Message): Promise<[boolean, string | null]> {
     try {
         const room = await RoomModel.findOne({
             participants: { $all: [senderName, receiverName] },
@@ -258,10 +245,7 @@ export async function getRoom(id: string, limit: number) {
     }
 }
 
-export async function search(
-    username: string,
-    limit: number
-): Promise<false | { username: string; bio: string }[]> {
+export async function search(username: string, limit: number): Promise<false | { username: string; bio: string }[]> {
     try {
         const users = await UserModel.find({ username: { $regex: username, $options: "i" } })
             .limit(limit)
@@ -285,12 +269,7 @@ export async function search(
     }
 }
 
-export async function createRoom(
-    sender: DUserDoc,
-    receiver: DUserDoc,
-    message: Message,
-    maxUsers: number
-) {
+export async function createRoom(sender: DUserDoc, receiver: DUserDoc, message: Message, maxUsers: number) {
     try {
         const newRoom = new RoomModel({
             participants: [sender.username, receiver.username],
@@ -343,12 +322,7 @@ export async function addMessageToRoom(message: Message, roomId: string) {
     console.timeEnd("addMessageToRoom performance");
 }
 
-export async function addLastMessageToRoom(
-    sender: DUserDoc,
-    receiver: DUserDoc,
-    message: Message,
-    roomId: string
-) {
+export async function addLastMessageToRoom(sender: DUserDoc, receiver: DUserDoc, message: Message, roomId: string) {
     try {
         const senderRoom = sender.rooms.find((room) => room.id === roomId);
         if (senderRoom && "last_message" in senderRoom) {
@@ -381,4 +355,40 @@ export function findNewMessagesIndexMarker(messages: Message[], username: string
         return messages[messages.length - 1].index;
     }
     return null;
+}
+
+export async function setNotSeenForUsers(sender: string, receiver: string) {
+    const room = await RoomModel.findOne({
+        participants: { $all: [sender, receiver] },
+    });
+
+    let notSeenCount = 0;
+    let lastReceiver = room?.messages[0].receiver || receiver;
+
+    if (room) {
+        for (let i = 0; i < room.messages.length; i++) {
+            if (room.messages[i].seen) {
+                notSeenCount = i;
+                break;
+            }
+        }
+
+        await Promise.all([
+            UserModel.findOneAndUpdate(
+                { username: sender },
+                { $set: { "rooms.$[elem].not_seen_count": 0 } },
+                {
+                    arrayFilters: [{ "elem.id": room._id.toString() }],
+                }
+            ),
+
+            UserModel.findOneAndUpdate(
+                { username: lastReceiver },
+                { $set: { "rooms.$[elem].not_seen_count": notSeenCount } },
+                {
+                    arrayFilters: [{ "elem.id": room._id.toString() }],
+                }
+            ),
+        ]);
+    }
 }

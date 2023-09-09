@@ -17,10 +17,6 @@ function App() {
     const idLs = localStorage.getItem(ID_STORAGE_KEY);
     const usernameLs = localStorage.getItem(USERNAME_STORAGE_KEY);
 
-    if (tokenLs == null || idLs == null) {
-        navigate("/login");
-    }
-
     const [token, setToken] = useState(tokenLs);
     const [id, setId] = useState(idLs);
     const [username, setUsername] = useState(usernameLs);
@@ -72,6 +68,7 @@ function App() {
     }, []);
 
     useSocket(socket, "menu", (data: { success: boolean; message: string; user: User }) => {
+        console.log("data", data);
         if (!data.success) {
             navigate("/login");
         } else if (data && "user" in data && data.user) {
@@ -89,18 +86,7 @@ function App() {
 
     return (
         <Routes>
-            <Route
-                path="/messenger"
-                element={
-                    <MessengerPage
-                        socket={socket}
-                        menu={menu}
-                        id={id}
-                        token={token}
-                        username={username}
-                    />
-                }
-            />
+            <Route path="/messenger" element={<MessengerPage socket={socket} menu={menu} id={id} token={token} username={username} />} />
             <Route
                 path="/signup"
                 element={

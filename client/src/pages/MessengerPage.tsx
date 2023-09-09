@@ -39,6 +39,8 @@ const MessengerPage = ({
         [username || ""]: [],
     });
 
+    console.log(chat);
+
     useSocket(socket, "search", (data: SearchResult) => {
         setSearchResult(data);
     });
@@ -105,6 +107,20 @@ const MessengerPage = ({
         });
     });
 
+    useSocket(socket, "deleteMessage", (data: { message: Message }) => {
+        const chattingWith = data.message.sender === username ? data.message.receiver : data.message.sender;
+        setChat((prev) => {
+            let obj = { ...prev };
+            for (let i = 0; i < obj[chattingWith].length; i++) {
+                if (obj[chattingWith][i]?.index === data.message.index) {
+                    delete obj[chattingWith][i];
+                    break;
+                }
+            }
+            return obj;
+        });
+    });
+
     const sendPrivateMessage = () => {
         if (messageInput.trim().length === 0) return;
         if (!username) return;
@@ -130,9 +146,7 @@ const MessengerPage = ({
         setChat((prev) => {
             let obj: TChat = { ...prev };
             if (message.receiver in obj) {
-                if (
-                    obj[message.receiver][obj[message.receiver].length - 1].index !== message.index
-                ) {
+                if (obj[message.receiver][obj[message.receiver].length - 1].index !== message.index) {
                     obj[message.receiver].push(message);
                 }
             } else {
@@ -226,17 +240,10 @@ const MessengerPage = ({
                     searchResult={searchResult}
                     userOnClick={userOnClick}
                 />
-                <div
-                    id="main"
-                    className={`flex flex-row ${
-                        searchState ? "h-0" : "h-full"
-                    } overflow-hidden duration-300`}
-                >
+                <div id="main" className={`flex flex-row ${searchState ? "h-0" : "h-full"} overflow-hidden duration-300`}>
                     <div
                         id="menu"
-                        className={`${
-                            state === "menu" ? "w-full" : "w-0"
-                        } sm:w-[400px] bg-gray-500 h-full duration-200 overflow-y-scroll`}
+                        className={`${state === "menu" ? "w-full" : "w-0"} sm:w-[400px] bg-gray-500 h-full duration-200 overflow-y-scroll`}
                     >
                         {menu &&
                             "rooms" in menu &&
@@ -247,24 +254,26 @@ const MessengerPage = ({
                                     onClick={() => userOnClick(elem.username)}
                                 >
                                     <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-slate-800"></div>
-                                    <div className="flex flex-col">
-                                        <div className="text-[18px] mt-[6px] ml-[10px] group-hover:text-black duration-200">
-                                            {elem.username}
-                                        </div>
+                                    <div className="flex flex-col relative w-full">
+                                        <div className="text-[18px] mt-[6px] ml-[10px] group-hover:text-black duration-200">{elem.username}</div>
                                         <div className="text-[14px] mt-[0px] ml-[10px] group-hover:text-black duration-200">
                                             {elem.last_message.content.length > 25
                                                 ? elem.last_message.content.slice(0, 25) + "..."
                                                 : elem.last_message.content}
                                         </div>
+                                        <div className="absolute top-0 left-1/2">{elem.last_message.seen.toString()}</div>
+                                        {elem.not_seen_count && elem.not_seen_count > 0 && (
+                                            <div className="absolute bg-white rounded-full h-fit px-2 py-1 min-w-[28px] text-center text-black text-[14px] right-[10px] top-1/2 -translate-y-1/2">
+                                                {elem.not_seen_count}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
                     </div>
                     <div
                         id="chat"
-                        className={`${
-                            state === "chat" ? "w-full" : "w-0"
-                        } flex-grow bg-gray-800 h-auto overflow-hidden relative`}
+                        className={`${state === "chat" ? "w-full" : "w-0"} flex-grow bg-gray-800 h-auto overflow-hidden duration-200 relative`}
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
                                 sendPrivateMessage();
@@ -273,15 +282,13 @@ const MessengerPage = ({
                         }}
                     >
                         {chat && state === "chat" && (
-                            <div
-                                id="chat-scrollable"
-                                className="h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse"
-                            >
-                                {currentRoomWith in chat &&
-                                chat[currentRoomWith].length !== 0 &&
-                                socket ? (
+                            <div id="chat-scrollable" className={`h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse`}>
+                                {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && socket ? (
                                     <Chat
+                                        token={token}
+                                        id={id}
                                         chat={chat[currentRoomWith]}
+                                        setChat={setChat}
                                         selfUsername={username}
                                         socket={socket}
                                         onSeenFn={onSeen}
@@ -289,11 +296,7 @@ const MessengerPage = ({
                                     />
                                 ) : (
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-1 py-1 bg-slate-900 rounded-2xl text-[14px]">
-                                        {profileResponseMessage !== null ? (
-                                            profileResponseMessage
-                                        ) : (
-                                            <Loading color="white" />
-                                        )}
+                                        {profileResponseMessage !== null ? profileResponseMessage : <Loading color="white" />}
                                     </div>
                                 )}
                             </div>

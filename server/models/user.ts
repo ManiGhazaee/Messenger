@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema<DUser>({
                     index: Number,
                     sender: String,
                     receiver: String,
-                    seen: String,
+                    seen: Boolean,
                     content: String,
                     time: Date,
                 },
