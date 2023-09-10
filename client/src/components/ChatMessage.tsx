@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 
 const ChatMessage = ({
@@ -9,6 +9,7 @@ const ChatMessage = ({
     selfUsername,
     readyForSeen,
     newMessagesMarker,
+    setNewMessagesMarker,
 }: {
     message: Message;
     type: "sender" | "receiver";
@@ -17,6 +18,7 @@ const ChatMessage = ({
     selfUsername: string;
     readyForSeen: boolean;
     newMessagesMarker: number | null;
+    setNewMessagesMarker: Dispatch<SetStateAction<number | null>>;
 }) => {
     const [newMessagesMarkerDisplay, setNewMessagesMarkerDisplay] = useState<boolean>(true);
 
@@ -34,6 +36,9 @@ const ChatMessage = ({
     useEffect(() => {
         const timer = setTimeout(() => {
             setNewMessagesMarkerDisplay(false);
+            setTimeout(() => {
+                setNewMessagesMarker(null);
+            }, 300);
         }, 5000);
 
         return () => clearTimeout(timer);
@@ -46,10 +51,9 @@ const ChatMessage = ({
                     {newMessagesMarker !== null && newMessagesMarker === message.index && (
                         <div
                             style={{
-                                opacity: newMessagesMarkerDisplay ? "1" : "0",
                                 height: newMessagesMarkerDisplay ? "24px" : "0px",
                             }}
-                            className="w-full duration-300 bg-cyan-400 text-black text-center"
+                            className={` w-full duration-300 bg-cyan-400 text-black text-center`}
                         >
                             New Messages
                         </div>

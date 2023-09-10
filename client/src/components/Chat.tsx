@@ -16,6 +16,7 @@ const Chat = ({
     setChat,
     onSeenFn,
     newMessagesMarker,
+    setNewMessagesMarker,
 }: {
     token: string | null;
     id: string | null;
@@ -25,6 +26,7 @@ const Chat = ({
     setChat: Dispatch<SetStateAction<TChat>>;
     onSeenFn: (index: number, message: Message) => void;
     newMessagesMarker: number | null;
+    setNewMessagesMarker: Dispatch<SetStateAction<number | null>>;
 }) => {
     const chatContRef = useRef<HTMLDivElement>(null);
     const messagesRef = useRef<HTMLDivElement>(null);
@@ -139,6 +141,7 @@ const Chat = ({
                                         selfUsername={selfUsername}
                                         readyForSeen={readyForSeen}
                                         newMessagesMarker={newMessagesMarker}
+                                        setNewMessagesMarker={setNewMessagesMarker}
                                     />
                                 </ContextMenu>
                             ) : (
@@ -150,6 +153,7 @@ const Chat = ({
                                     selfUsername={selfUsername}
                                     readyForSeen={readyForSeen}
                                     newMessagesMarker={newMessagesMarker}
+                                    setNewMessagesMarker={setNewMessagesMarker}
                                 />
                             )
                         )}

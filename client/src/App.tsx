@@ -68,7 +68,7 @@ function App() {
     }, []);
 
     useSocket(socket, "menu", (data: { success: boolean; message: string; user: User }) => {
-        console.log("data", data);
+        console.log("menu", data);
         if (!data.success) {
             navigate("/login");
         } else if (data && "user" in data && data.user) {

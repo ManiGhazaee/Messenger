@@ -256,13 +256,85 @@ html {
     }
 }
 
-.new-messages-marker {
-    animation: newMessagesMarker 300ms forwards;
+.new-messages-marker-open {
+    animation: newMessagesMarkerOpen 300ms forwards;
     height: 0px;
 }
 
-@keyframes newMessagesMarker {
+@keyframes newMessagesMarkerOpen {
     100% {
         height: 24px;
+    }
+}
+
+.new-messages-marker-close {
+    animation: newMessagesMarkerClose 300ms forwards;
+    height: 24px;
+}
+
+@keyframes newMessagesMarkerClose {
+    100% {
+        height: 0;
+    }
+}
+
+.more_options {
+    animation: moreOptions 300ms forwards;
+    transform: translateY(-20px) scale(0.7);
+    opacity: 0;
+}
+
+@keyframes moreOptions {
+    100% {
+        transform: translateY(0px) scale(1);
+        opacity: 1;
+    }
+}
+
+.scale_opacity_anim_300 {
+    animation: confirmModal 300ms forwards;
+    scale: 0.6;
+    transform-origin: 0% 0%;
+    opacity: 0;
+}
+
+@keyframes confirmModal {
+    100% {
+        scale: 1;
+        opacity: 1;
+    }
+}
+
+.back_drop_anim_300 {
+    animation: backDrop 300ms forwards;
+    backdrop-filter: blur(0px);
+}
+
+@keyframes backDrop {
+    100% {
+        backdrop-filter: blur(4px);
+    }
+}
+
+.opacity_anim_300 {
+    animation: opacityAnimation 300ms forwards;
+    opacity: 0;
+}
+
+@keyframes opacityAnimation {
+    100% {
+        opacity: 1;
+    }
+}
+
+.scale_anim_300 {
+    animation: scaleAnimation 300ms forwards;
+    scale: 0.6;
+    transform-origin: 0% 0%;
+}
+
+@keyframes scaleAnimation {
+    100% {
+        scale: 1;
     }
 }

@@ -104,7 +104,7 @@ io.on("connection", (socket: Socket) => {
         }
 
         const messages = await getRoom(roomId, 200);
-        if (messages) {
+        if (messages && messages.length !== 0) {
             const newMessagesMarker: number | null = findNewMessagesIndexMarker(messages, user.username);
 
             socket.emit("profile", {
@@ -117,7 +117,7 @@ io.on("connection", (socket: Socket) => {
                 messages: messages,
             });
         } else {
-            socket.emit("profile", { success: false, message: "Chat Not Found" });
+            socket.emit("profile", { success: false, message: "No Messages Found" });
         }
     });
 
@@ -307,6 +307,76 @@ io.on("connection", (socket: Socket) => {
         } catch (e) {
             console.log(e);
         }
+    });
+
+    socket.on("clearHistory", async (data: { token: string; id: string; sender: string; receiver: string }) => {
+        if (!isAuthorized(data.token)) return;
+
+        const room = await RoomModel.findOneAndUpdate(
+            {
+                participants: { $all: [data.sender, data.receiver] },
+            },
+            {
+                $set: {
+                    messages: [],
+                },
+            },
+            { new: true }
+        );
+
+        if (!room) return;
+
+        const roomId = room._id.toString();
+        const [newSender, newReceiver] = await Promise.all([
+            UserModel.findOneAndUpdate(
+                { username: data.sender },
+                {
+                    $set: {
+                        "rooms.$[elem].not_seen_count": 0,
+                        "rooms.$[elem].last_message.index": 0,
+                        "rooms.$[elem].last_message.seen": false,
+                        "rooms.$[elem].last_message.content": "",
+                        "rooms.$[elem].last_message.time": new Date(),
+                    },
+                },
+                {
+                    arrayFilters: [{ "elem.id": roomId }],
+                    new: true,
+                }
+            ),
+            UserModel.findOneAndUpdate(
+                { username: data.receiver },
+                {
+                    $set: {
+                        "rooms.$[elem].not_seen_count": 0,
+                        "rooms.$[elem].last_message.index": 0,
+                        "rooms.$[elem].last_message.seen": false,
+                        "rooms.$[elem].last_message.content": "",
+                        "rooms.$[elem].last_message.time": new Date(),
+                    },
+                },
+                {
+                    arrayFilters: [{ "elem.id": roomId }],
+                    new: true,
+                }
+            ),
+        ]);
+
+        if (!newReceiver || !newSender) return;
+
+        socket.emit("menu", { user: newSender, success: true, message: "User found" });
+
+        socket.to(newReceiver.username).emit("menu", { user: newReceiver, success: true, message: "User found" });
+
+        socket.emit("profile", {
+            success: true,
+            message: "Messages found",
+            new_messages_marker: null,
+            username: newReceiver.username,
+            bio: newReceiver.bio,
+            room_id: roomId,
+            messages: [],
+        });
     });
 
     socket.on("disconnect", () => {

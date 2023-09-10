@@ -1,7 +1,7 @@
 import React, { CSSProperties, useState } from "react";
 import { createPortal } from "react-dom";
 
-type ContextMenuItems = {
+export type ContextMenuItems = {
     text: string;
     onClick: (...args: any[]) => void;
     params?: any[];

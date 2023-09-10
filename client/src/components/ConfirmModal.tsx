@@ -48,10 +48,10 @@ const ConfirmModal = ({
         <>
             <div
                 onClick={() => displayFn(false)}
-                className={`w-screen h-screen ${display ? "fixed" : "hidden"} top-0 left-0 z-[100] backdrop-blur-sm `}
+                className={`w-screen h-screen ${display ? "fixed" : "hidden"} top-0 left-0 z-[100] back_drop_anim_300`}
             ></div>
             <div
-                className="fixed w-[400px] max-w-[400px] h-fit bg-black border border-borders rounded-lg top-1/2 -translate-x-1/2 left-1/2 -translate-y-1/2 z-[110]"
+                className="scale_opacity_anim_300 fixed  w-[400px] max-w-[400px] h-fit bg-black border border-borders rounded-lg top-1/2 -translate-x-1/2 left-1/2 -translate-y-1/2 z-[110]"
                 style={{
                     display: display ? "block" : "none",
                 }}

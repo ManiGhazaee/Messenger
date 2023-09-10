@@ -7,6 +7,9 @@ import Loading from "../components/Loading";
 import Setting from "../components/Setting";
 import Search from "../components/Search";
 import Nav from "../components/Nav";
+import ConfirmModal from "../components/ConfirmModal";
+import ContextMenu from "../components/ContextMenu";
+import MoreOptions from "../components/MoreOptions";
 
 export type TChat = {
     [key: string]: Message[];
@@ -38,6 +41,8 @@ const MessengerPage = ({
     const [chat, setChat] = useState<TChat>({
         [username || ""]: [],
     });
+    const [chatMoreModalDisplay, setChatMoreModalDisplay] = useState<boolean>(false);
+    const [clearHistoryConfirmModal, setClearHistoryConfirmModal] = useState<boolean>(false);
 
     console.log(chat);
 
@@ -56,9 +61,13 @@ const MessengerPage = ({
             success: boolean;
             new_messages_marker: number | null;
         }) => {
+            console.log("profile data", data);
             if (data.message === "No messages") {
                 setProfileResponseMessage("No Messages Found");
                 return;
+            }
+            if (data.success === false && "message" in data) {
+                setProfileResponseMessage(data.message);
             }
             if (data.new_messages_marker !== null) {
                 setNewMessagesMarker(data.new_messages_marker);
@@ -218,7 +227,15 @@ const MessengerPage = ({
         });
     };
 
-    const chatMoreOnClick = () => {};
+    const chatMoreOnClick = () => {
+        setChatMoreModalDisplay(!chatMoreModalDisplay);
+    };
+    const clearHistory = () => {
+        setClearHistoryConfirmModal(false);
+        if (socket) {
+            socket.emit("clearHistory", { token, id, sender: username, receiver: currentRoomWith });
+        }
+    };
 
     return (
         <div className="h-screen">
@@ -230,6 +247,27 @@ const MessengerPage = ({
                 state={state}
                 chatUsername={chatUsername}
                 chatMoreOnClick={chatMoreOnClick}
+            />
+            <MoreOptions
+                items={[
+                    {
+                        text: "Clear History",
+                        onClick: () => {
+                            setClearHistoryConfirmModal(true);
+                        },
+                    },
+                ]}
+                display={chatMoreModalDisplay}
+                displayFn={setChatMoreModalDisplay}
+            />
+            <ConfirmModal
+                display={clearHistoryConfirmModal}
+                displayFn={setClearHistoryConfirmModal}
+                onOkFn={clearHistory}
+                title="Clear History"
+                message={`This will clear all messages. Are you sure you want to clear the history with ${currentRoomWith}?`}
+                okText="Yes"
+                cancelText="No"
             />
             <div className="flex flex-col h-[calc(100%-62px)]">
                 <Search
@@ -256,7 +294,7 @@ const MessengerPage = ({
                                     <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-slate-800"></div>
                                     <div className="flex flex-col relative w-full">
                                         <div className="text-[18px] mt-[6px] ml-[10px] group-hover:text-black duration-200">{elem.username}</div>
-                                        <div className="text-[14px] mt-[0px] ml-[10px] group-hover:text-black duration-200">
+                                        <div className="text-[14px] mt-[0px] ml-[10px] max-w-[50%] overflow-hidden group-hover:text-black duration-200">
                                             {elem.last_message.content.length > 25
                                                 ? elem.last_message.content.slice(0, 25) + "..."
                                                 : elem.last_message.content}
@@ -310,11 +348,20 @@ const MessengerPage = ({
                                         socket={socket}
                                         onSeenFn={onSeen}
                                         newMessagesMarker={newMessagesMarker}
+                                        setNewMessagesMarker={setNewMessagesMarker}
                                     />
                                 ) : (
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-1 py-1 bg-slate-900 rounded-2xl text-[14px]">
-                                        {profileResponseMessage !== null ? profileResponseMessage : <Loading color="white" />}
-                                    </div>
+                                    <>
+                                        {profileResponseMessage !== null ? (
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-3 py-1 bg-slate-900 rounded-2xl text-[14px]">
+                                                {profileResponseMessage}
+                                            </div>
+                                        ) : (
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-1 py-1 bg-slate-900 rounded-2xl text-[14px]">
+                                                <Loading color="white" />
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}
