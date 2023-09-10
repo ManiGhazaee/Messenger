@@ -62,21 +62,31 @@ const MessengerPage = ({
             new_messages_marker: number | null;
         }) => {
             console.log("profile data", data);
-            if (data.message === "No messages") {
+            if (data.success && data.message === "No messages") {
                 setProfileResponseMessage("No Messages Found");
-                return;
             }
-            if (data.success === false && "message" in data) {
-                setProfileResponseMessage(data.message);
+
+            if (!data.success && "message" in data) {
+                setProfileResponseMessage((prev) => {
+                    prev = data.message;
+                    return prev;
+                });
             }
+
             if (data.new_messages_marker !== null) {
                 setNewMessagesMarker(data.new_messages_marker);
             } else {
                 setNewMessagesMarker(null);
             }
 
+            if ((!("messages" in data) || data.messages.length === 0) && username && currentRoomWith) {
+                deleteMessagesFor(username, setChat, username, currentRoomWith);
+                return;
+            }
+
             if ("messages" in data && data.messages && data.messages.length) {
-                deleteMessagesFor(username, setChat, data.messages[0]);
+                setProfileResponseMessage(null);
+                deleteMessagesFor(username, setChat, data.messages[0].sender, data.messages[0].receiver);
                 for (let i = data.messages.length - 1; i >= 0; i--) {
                     addMessage(username, setChat, data.messages[i]);
                 }
@@ -308,7 +318,7 @@ const MessengerPage = ({
                                 ) : (
                                     <>
                                         {profileResponseMessage !== null ? (
-                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-3 py-1 bg-zinc-900 rounded-2xl text-[14px]">
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1 bg-zinc-900 rounded-2xl text-[14px]">
                                                 {profileResponseMessage}
                                             </div>
                                         ) : (

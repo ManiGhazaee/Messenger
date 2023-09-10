@@ -29,16 +29,12 @@ const ChatMessage = ({
     useEffect(() => {
         if (inView && selfUsername === message.receiver && readyForSeen) {
             onSeenFn(chatIndex, message);
-            console.log(message.content, "seen");
         }
     }, [inView, onSeenFn, readyForSeen]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setNewMessagesMarkerDisplay(false);
-            setTimeout(() => {
-                setNewMessagesMarker(null);
-            }, 300);
         }, 5000);
 
         return () => clearTimeout(timer);

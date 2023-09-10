@@ -51,22 +51,22 @@ export function setMessageStatusToSuccess(selfUsername: string | null, setChatSt
     }
 }
 
-export function deleteMessagesFor(selfUsername: string | null, setChatStateFn: Dispatch<SetStateAction<TChat>>, message: Message) {
+export function deleteMessagesFor(selfUsername: string | null, setChatStateFn: Dispatch<SetStateAction<TChat>>, sender: string, receiver: string) {
     if (!selfUsername) return;
 
-    if (message.sender === selfUsername) {
+    if (sender === selfUsername) {
         setChatStateFn((prev) => {
             let obj: TChat = { ...prev };
-            if (message.receiver in obj) {
-                delete obj[message.receiver];
+            if (receiver in obj) {
+                delete obj[receiver];
             }
             return obj;
         });
-    } else if (message.receiver === selfUsername) {
+    } else if (receiver === selfUsername) {
         setChatStateFn((prev) => {
             let obj: TChat = { ...prev };
-            if (message.sender in obj) {
-                delete obj[message.sender];
+            if (sender in obj) {
+                delete obj[sender];
             }
             return obj;
         });

@@ -45,7 +45,7 @@ const Menu = ({ menu, state, userOnClick }: { menu: User | null; state: "chat" |
                     </div>
                 ))
             ) : (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-1 py-1 bg-slate-900 rounded-2xl text-[14px]">
+                <div key="menu-loading" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-1 py-1 bg-zinc-800 rounded-2xl text-[14px]">
                     <Loading color="white" />
                 </div>
             )}

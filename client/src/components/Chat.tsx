@@ -49,20 +49,29 @@ const Chat = ({
 
     useEffect(() => {
         const chatScrollable = document.getElementById("chat-scrollable");
+        console.log("messageRef", messagesRef);
+        console.log("newMessagesMarker", newMessagesMarker);
+        console.log("readyForSeen", readyForSeen);
+        console.log("chatScrollable", chatScrollable);
         if (messagesRef.current && newMessagesMarker !== null && !readyForSeen && chatScrollable) {
+            console.log("1 executed");
             const children = messagesRef.current.children;
             if (children.length > 0) {
+                console.log("2 executed");
                 for (let i = 0; i < children.length; i++) {
+                    console.log("3 executed");
                     if (parseInt(children[i].id) === newMessagesMarker) {
+                        console.log("3 executed");
                         chatScrollable.scrollTo({
                             top: (children[i] as HTMLElement).offsetTop - 200,
                         });
+                        console.log("4 executed");
                         setReadyForSeen(() => true);
                     }
                 }
             }
         }
-    }, [messagesRef.current]);
+    }, [messagesRef.current, newMessagesMarker, readyForSeen]);
 
     const scrollToBottomOnClick = () => {
         const chatScrollable = document.getElementById("chat-scrollable");
@@ -112,36 +121,35 @@ const Chat = ({
                     {selfUsername &&
                         chat.map((message, index) =>
                             message.sender === selfUsername ? (
-                                <ContextMenu
-                                    items={[
-                                        { text: "Replay", onClick: () => {} },
-                                        {
-                                            text: "Copy",
-                                            onClick: (index) => {
-                                                console.log(chat[index]);
-                                            },
-                                            params: [index],
-                                        },
-                                        { text: "Forward", onClick: () => {} },
-                                        {
-                                            text: "Delete",
-                                            onClick: deleteMessageOnClick,
-                                            params: [index, message],
-                                            style: { color: "red" },
-                                        },
-                                    ]}
-                                >
-                                    <ChatMessage
-                                        message={message}
-                                        type="sender"
-                                        onSeenFn={onSeenFn}
-                                        chatIndex={index}
-                                        selfUsername={selfUsername}
-                                        readyForSeen={readyForSeen}
-                                        newMessagesMarker={newMessagesMarker}
-                                        setNewMessagesMarker={setNewMessagesMarker}
-                                    />
-                                </ContextMenu>
+                                // <ContextMenu
+                                //     items={[
+                                //         { text: "Replay", onClick: () => {} },
+                                //         {
+                                //             text: "Copy",
+                                //             onClick: (index) => {
+                                //                 console.log(chat[index]);
+                                //             },
+                                //             params: [index],
+                                //         },
+                                //         { text: "Forward", onClick: () => {} },
+                                //         {
+                                //             text: "Delete",
+                                //             onClick: deleteMessageOnClick,
+                                //             params: [index, message],
+                                //             style: { color: "red" },
+                                //         },
+                                //     ]}
+                                // >
+                                <ChatMessage
+                                    message={message}
+                                    type="sender"
+                                    onSeenFn={onSeenFn}
+                                    chatIndex={index}
+                                    selfUsername={selfUsername}
+                                    readyForSeen={readyForSeen}
+                                    newMessagesMarker={newMessagesMarker}
+                                    setNewMessagesMarker={setNewMessagesMarker}
+                                />
                             ) : (
                                 <ChatMessage
                                     message={message}
