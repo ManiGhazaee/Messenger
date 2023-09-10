@@ -30,9 +30,9 @@ const Nav = ({
                     <i className="bi bi-list"></i>
                 )}
             </div>
-            <div className="text-[18px] ml-4 mt-[2px] flex flex-row">
+            <div className="text-[18px] font-bold ml-4 mt-[2px] flex flex-row">
                 {chatUsername ? (
-                    <div className="h-[33px] mt-[-2px] mr-[18px] aspect-square rounded-full bg-slate-800"></div>
+                    <div className="md:hidden h-[33px] mt-[-2px] mr-[18px] aspect-square rounded-full bg-zinc-800"></div>
                 ) : (
                     <></>
                 )}

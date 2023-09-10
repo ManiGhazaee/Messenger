@@ -47,7 +47,7 @@ const ContextMenu = ({ children, items }: { children: JSX.Element | JSX.Element[
                                     top: clickPoint.y,
                                     left: clickPoint.x,
                                 }}
-                                className="absolute z-[180] w-[180px] bg-black rounded-xl"
+                                className="scale_opacity_anim_300 absolute z-[180] w-[180px] bg-black rounded-xl"
                             >
                                 {items &&
                                     items.length !== 0 &&

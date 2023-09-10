@@ -59,7 +59,7 @@ const ChatMessage = ({
                         </div>
                     )}
                     <div id={message.index.toString()} className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right`} ref={ref}>
-                        <div className={`message relative w-fit px-3 bg-gray-600 rounded-2xl py-1 my-[2px] break-words`}>
+                        <div className={`message relative w-fit px-3 bg-blue-700 rounded-2xl py-1 my-[2px] break-words`}>
                             {message.content}
                             {
                                 <span className="message-time inline-block text-right ml-[8px] text-[10px] w-fit">{`${new Date(message.time)
@@ -97,10 +97,10 @@ const ChatMessage = ({
                         </div>
                     )}
                     <div id={message.index.toString()} className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]`} ref={ref}>
-                        <div className={`message relative w-fit px-3 bg-black rounded-2xl py-1 my-[2px] break-words`}>
+                        <div className={`message relative w-fit px-3 bg-zinc-950 border border-borders rounded-2xl py-1 my-[2px] break-words`}>
                             {message.content}
                             {
-                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] w-fit">{`${new Date(message.time)
+                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] text-text_2 w-fit">{`${new Date(message.time)
                                     .getHours()
                                     .toString()
                                     .padStart(2, "0")}:${new Date(message.time).getMinutes().toString().padStart(2, "0")}`}</span>

@@ -234,6 +234,7 @@ html {
     opacity: 0;
     max-width: 70%;
     transform: scale(0) translateX(-150px);
+    transform-origin: 100% 50%;
 }
 
 @keyframes message {
@@ -291,14 +292,20 @@ html {
     }
 }
 
-.scale_opacity_anim_300 {
-    animation: confirmModal 300ms forwards;
+.scale_opacity_anim_300_0_origin {
+    animation: scaleOpacity 300ms forwards;
     scale: 0.6;
     transform-origin: 0% 0%;
     opacity: 0;
 }
 
-@keyframes confirmModal {
+.scale_opacity_anim_300 {
+    animation: scaleOpacity 300ms forwards;
+    scale: 0.6;
+    opacity: 0;
+}
+
+@keyframes scaleOpacity  {
     100% {
         scale: 1;
         opacity: 1;

@@ -8,8 +8,8 @@ import Setting from "../components/Setting";
 import Search from "../components/Search";
 import Nav from "../components/Nav";
 import ConfirmModal from "../components/ConfirmModal";
-import ContextMenu from "../components/ContextMenu";
 import MoreOptions from "../components/MoreOptions";
+import Menu from "../components/Menu";
 
 export type TChat = {
     [key: string]: Message[];
@@ -228,6 +228,7 @@ const MessengerPage = ({
     };
 
     const chatMoreOnClick = () => {
+        if (state !== "chat") return;
         setChatMoreModalDisplay(!chatMoreModalDisplay);
     };
     const clearHistory = () => {
@@ -279,56 +280,10 @@ const MessengerPage = ({
                     userOnClick={userOnClick}
                 />
                 <div id="main" className={`flex flex-row ${searchState ? "h-0" : "h-full"} overflow-hidden duration-300`}>
-                    <div
-                        id="menu"
-                        className={`${state === "menu" ? "w-full" : "w-0"} sm:w-[400px] bg-gray-500 h-full duration-200 overflow-y-scroll`}
-                    >
-                        {menu &&
-                            "rooms" in menu &&
-                            menu.rooms.length !== 0 &&
-                            menu.rooms.map((elem) => (
-                                <div
-                                    className="h-[60px] flex flex-row w-[100%] hover:bg-slate-300 border-borders group cursor-pointer duration-200 overflow-hidden"
-                                    onClick={() => userOnClick(elem.username)}
-                                >
-                                    <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-slate-800"></div>
-                                    <div className="flex flex-col relative w-full">
-                                        <div className="text-[18px] mt-[6px] ml-[10px] group-hover:text-black duration-200">{elem.username}</div>
-                                        <div className="text-[14px] mt-[0px] ml-[10px] max-w-[50%] overflow-hidden group-hover:text-black duration-200">
-                                            {elem.last_message.content.length > 25
-                                                ? elem.last_message.content.slice(0, 25) + "..."
-                                                : elem.last_message.content}
-                                        </div>
-
-                                        <div className="ml-[0px] h-[20px] absolute bottom-[8px] group-hover:text-black duration-200 right-[8px] inline-block w-[72px] text-right">
-                                            <div className="inline-block text-right mr-[8px] text-[12px] w-fit">{`${new Date(elem.last_message.time)
-                                                .getHours()
-                                                .toString()
-                                                .padStart(2, "0")}:${new Date(elem.last_message.time)
-                                                .getMinutes()
-                                                .toString()
-                                                .padStart(2, "0")}`}</div>
-
-                                            {elem.username === elem.last_message.receiver &&
-                                                (elem.last_message.seen ? (
-                                                    <i className="bi bi-check2-all mr-[8px]"></i>
-                                                ) : (
-                                                    <i className="bi bi-check2 mr-[8px]"></i>
-                                                ))}
-                                        </div>
-
-                                        {elem.not_seen_count > 0 && (
-                                            <div className="absolute bg-white rounded-full h-fit px-[2px] py-[3px] group-hover:bg-black group-hover:text-white duration-200 min-w-[23px] text-center text-black text-[12px] right-[14px] top-[8px] ">
-                                                {elem.not_seen_count}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                    </div>
+                    <Menu menu={menu} state={state} userOnClick={userOnClick} />
                     <div
                         id="chat"
-                        className={`${state === "chat" ? "w-full" : "w-0"} flex-grow bg-gray-800 h-auto overflow-hidden duration-200 relative`}
+                        className={`${state === "chat" ? "w-full" : "w-0"} flex-grow bg-black h-auto overflow-hidden duration-200 relative`}
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
                                 sendPrivateMessage();
@@ -353,11 +308,11 @@ const MessengerPage = ({
                                 ) : (
                                     <>
                                         {profileResponseMessage !== null ? (
-                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-3 py-1 bg-slate-900 rounded-2xl text-[14px]">
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-3 py-1 bg-zinc-900 rounded-2xl text-[14px]">
                                                 {profileResponseMessage}
                                             </div>
                                         ) : (
-                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-1 py-1 bg-slate-900 rounded-2xl text-[14px]">
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-1 py-1 bg-zinc-900 rounded-2xl text-[14px]">
                                                 <Loading color="white" />
                                             </div>
                                         )}
@@ -365,12 +320,11 @@ const MessengerPage = ({
                                 )}
                             </div>
                         )}
-
                         <div className="flex flex-row w-[calc(100%-10px)] h-[40px] absolute left-0 bottom-[5px] ml-[5px]">
-                            <div className="flex-grow bg-black border-borders border-[1px] h-full rounded-full px-4 ">
+                            <div className="flex-grow bg-zinc-950 border-borders border-[1px] h-full rounded-full px-4 ">
                                 <textarea
                                     id="search-input"
-                                    className="resize-none bg-black text-[14px] outline-none py-[8px] h-[100%] w-full"
+                                    className="resize-none placeholder:text-zinc-500 bg-zinc-950 text-[14px] outline-none py-[8px] h-[100%] w-full"
                                     autoComplete="off"
                                     value={messageInput}
                                     onChange={(e) => setMessageInput(e.target.value)}
@@ -384,7 +338,7 @@ const MessengerPage = ({
                             </div>
                             <button
                                 id="search-button"
-                                className="text-black bg-white w-[40px]  active:bg-text_2 active:text-black duration-100 cursor-pointer rounded-full h-full relative ml-[5px]"
+                                className="text-black bg-white w-[40px] active:bg-text_2 active:text-black duration-100 cursor-pointer rounded-full h-full relative ml-[5px]"
                                 onClick={sendPrivateMessage}
                             >
                                 <i className="bi bi-send absolute top-[53%] left-[48%] -translate-x-1/2 -translate-y-1/2"></i>

@@ -4,8 +4,6 @@ import ChatMessage from "./ChatMessage";
 import { Socket } from "socket.io-client";
 import ContextMenu from "./ContextMenu";
 import { TChat } from "../pages/MessengerPage";
-import ReactDOM, { createPortal } from "react-dom";
-import ConfirmModal from "./ConfirmModal";
 
 const Chat = ({
     token,

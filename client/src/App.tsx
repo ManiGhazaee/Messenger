@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import SignupPage from "./pages/SignupPage";
 import MessengerPage from "./pages/MessengerPage";

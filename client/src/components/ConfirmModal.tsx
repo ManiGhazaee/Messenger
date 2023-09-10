@@ -51,7 +51,7 @@ const ConfirmModal = ({
                 className={`w-screen h-screen ${display ? "fixed" : "hidden"} top-0 left-0 z-[100] back_drop_anim_300`}
             ></div>
             <div
-                className="scale_opacity_anim_300 fixed  w-[400px] max-w-[400px] h-fit bg-black border border-borders rounded-lg top-1/2 -translate-x-1/2 left-1/2 -translate-y-1/2 z-[110]"
+                className="scale_opacity_anim_300_0_origin fixed  w-[400px] max-w-[400px] h-fit bg-black border border-borders rounded-lg top-1/2 -translate-x-1/2 left-1/2 -translate-y-1/2 z-[110]"
                 style={{
                     display: display ? "block" : "none",
                 }}
@@ -80,12 +80,14 @@ const ConfirmModal = ({
                     <div
                         className="w-[calc(50%-12px)] text-center border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white cursor-pointer text-[14px] py-[4px]"
                         onClick={() => onOk()}
+                        style={okStyle}
                     >
                         {okText || "Ok"}
                     </div>
                     <div
                         className="w-[calc(50%-12px)] text-center border border-borders rounded cursor-pointer hover:bg-white hover:text-black hover:border-white text-[14px] py-[4px]"
                         onClick={() => displayFn(false)}
+                        style={okStyle}
                     >
                         {cancelText || "Cancel"}
                     </div>
