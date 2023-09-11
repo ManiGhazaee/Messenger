@@ -27,7 +27,7 @@ const Setting = ({
                     width: settingState ? "300px" : "0px",
                     opacity: settingState ? "1" : "0",
                 }}
-                className="fixed left-0 z-[120] top-0 bg-black border-r duration-300 border-borders h-screen"
+                className="fixed left-0 z-[120] top-0 bg-black border-r duration-300 border-zinc-800 h-screen"
             ></div>
         </>
     );

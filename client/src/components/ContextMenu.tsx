@@ -6,9 +6,16 @@ export type ContextMenuItems = {
     onClick: (...args: any[]) => void;
     params?: any[];
     style?: CSSProperties;
+    icon?: JSX.Element;
 }[];
 
-const ContextMenu = ({ children, items }: { children: JSX.Element | JSX.Element[]; items: ContextMenuItems }) => {
+const ContextMenu = ({
+    children,
+    items,
+}: {
+    children: JSX.Element | JSX.Element[];
+    items: ContextMenuItems;
+}) => {
     const [contextShow, setContextShow] = useState<boolean>(false);
     const [clickPoint, setClickPoint] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -41,7 +48,10 @@ const ContextMenu = ({ children, items }: { children: JSX.Element | JSX.Element[
                 <>
                     {createPortal(
                         <>
-                            <div onClick={() => setContextShow(false)} className="absolute top-0 left-0 z-[130] w-screen h-screen"></div>
+                            <div
+                                onClick={() => setContextShow(false)}
+                                className="absolute top-0 left-0 z-[130] w-screen h-screen"
+                            ></div>
                             <div
                                 style={{
                                     top: clickPoint.y,

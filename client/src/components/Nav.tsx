@@ -18,7 +18,7 @@ const Nav = ({
     return (
         <div
             id="nav"
-            className="flex flex-row w-full py-[14px] px-[18px] border-b-[1px] border-borders relative"
+            className="flex flex-row w-full py-[14px] px-[18px] border-b-[1px] border-zinc-800 borders relative"
         >
             <div
                 onClick={moreOnClick}

@@ -4,6 +4,7 @@ import ChatMessage from "./ChatMessage";
 import { Socket } from "socket.io-client";
 import ContextMenu from "./ContextMenu";
 import { TChat } from "../pages/MessengerPage";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 const Chat = ({
     token,
@@ -109,11 +110,22 @@ const Chat = ({
                 {
                     <div
                         className={`${
-                            autoScrollInView ? "bottom-[40px] opacity-0" : "bottom-[50px] opacity-100"
-                        } text-white duration-300 text-[40px] w-fit h-fit fixed right-[5px] z-[100] cursor-pointer`}
+                            autoScrollInView
+                                ? "bottom-[40px] opacity-0"
+                                : "bottom-[50px] opacity-100"
+                        } text-white duration-300 text-[50px] rounded-full border border-zinc-800 bg-zinc-900 w-[50px] h-[50px] fixed right-[5px] z-[100] cursor-pointer`}
                         onClick={scrollToBottomOnClick}
                     >
-                        <i className="bi bi-arrow-down-circle-fill"></i>
+                        <ArrowDownwardIcon
+                            className=" text-blue-500"
+                            style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                fontSize: "30px",
+                            }}
+                        />
                     </div>
                 }
 
@@ -165,7 +177,11 @@ const Chat = ({
                         )}
                 </div>
 
-                <p ref={autoScrollRef} id="auto-scroll" className="w-full z-[-10] absolute bottom-0 h-[10px]"></p>
+                <p
+                    ref={autoScrollRef}
+                    id="auto-scroll"
+                    className="w-full z-[-10] absolute bottom-0 h-[10px]"
+                ></p>
             </div>
         </>
     );

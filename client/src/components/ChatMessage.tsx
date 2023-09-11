@@ -93,10 +93,10 @@ const ChatMessage = ({
                         </div>
                     )}
                     <div id={message.index.toString()} className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]`} ref={ref}>
-                        <div className={`message relative w-fit px-3 bg-zinc-950 border border-borders rounded-2xl py-1 my-[2px] break-words`}>
+                        <div className={`message relative w-fit px-3 bg-zinc-900 border border-zinc-800 rounded-2xl py-1 my-[2px] break-words`}>
                             {message.content}
                             {
-                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] text-text_2 w-fit">{`${new Date(message.time)
+                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] text-zinc-500 w-fit">{`${new Date(message.time)
                                     .getHours()
                                     .toString()
                                     .padStart(2, "0")}:${new Date(message.time).getMinutes().toString().padStart(2, "0")}`}</span>

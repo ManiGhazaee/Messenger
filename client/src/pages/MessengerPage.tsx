@@ -10,6 +10,9 @@ import Nav from "../components/Nav";
 import ConfirmModal from "../components/ConfirmModal";
 import MoreOptions from "../components/MoreOptions";
 import Menu from "../components/Menu";
+import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import RestoreRoundedIcon from "@mui/icons-material/RestoreRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 
 export type TChat = {
     [key: string]: Message[];
@@ -80,14 +83,23 @@ const MessengerPage = ({
                 setNewMessagesMarker(null);
             }
 
-            if ((!("messages" in data) || data.messages.length === 0) && username && currentRoomWith) {
+            if (
+                (!("messages" in data) || data.messages.length === 0) &&
+                username &&
+                currentRoomWith
+            ) {
                 deleteMessagesFor(username, setChat, username, currentRoomWith);
                 return;
             }
 
             if ("messages" in data && data.messages && data.messages.length) {
                 setProfileResponseMessage(null);
-                deleteMessagesFor(username, setChat, data.messages[0].sender, data.messages[0].receiver);
+                deleteMessagesFor(
+                    username,
+                    setChat,
+                    data.messages[0].sender,
+                    data.messages[0].receiver
+                );
                 for (let i = data.messages.length - 1; i >= 0; i--) {
                     addMessage(username, setChat, data.messages[i]);
                 }
@@ -128,7 +140,8 @@ const MessengerPage = ({
     });
 
     useSocket(socket, "deleteMessage", (data: { message: Message }) => {
-        const chattingWith = data.message.sender === username ? data.message.receiver : data.message.sender;
+        const chattingWith =
+            data.message.sender === username ? data.message.receiver : data.message.sender;
         setChat((prev) => {
             let obj = { ...prev };
             for (let i = 0; i < obj[chattingWith].length; i++) {
@@ -166,7 +179,9 @@ const MessengerPage = ({
         setChat((prev) => {
             let obj: TChat = { ...prev };
             if (message.receiver in obj) {
-                if (obj[message.receiver][obj[message.receiver].length - 1].index !== message.index) {
+                if (
+                    obj[message.receiver][obj[message.receiver].length - 1].index !== message.index
+                ) {
                     obj[message.receiver].push(message);
                 }
             } else {
@@ -273,6 +288,11 @@ const MessengerPage = ({
                         onClick: () => {
                             setClearHistoryConfirmModal(true);
                         },
+                        icon: (
+                            <RestoreRoundedIcon
+                                style={{ marginRight: "10px", top: "-1px", position: "relative" }}
+                            />
+                        ),
                     },
                     {
                         text: "Delete Chat",
@@ -280,6 +300,12 @@ const MessengerPage = ({
                             setDeleteChatConfirmModal(true);
                         },
                         style: { color: "red" },
+
+                        icon: (
+                            <DeleteOutlineRoundedIcon
+                                style={{ marginRight: "10px", top: "-1px", position: "relative" }}
+                            />
+                        ),
                     },
                 ]}
                 display={chatMoreModalDisplay}
@@ -312,11 +338,18 @@ const MessengerPage = ({
                     searchResult={searchResult}
                     userOnClick={userOnClick}
                 />
-                <div id="main" className={`flex flex-row ${searchState ? "h-0" : "h-full"} overflow-hidden duration-300`}>
+                <div
+                    id="main"
+                    className={`flex flex-row ${
+                        searchState ? "h-0" : "h-full"
+                    } overflow-hidden duration-300`}
+                >
                     <Menu menu={menu} state={state} userOnClick={userOnClick} />
                     <div
                         id="chat"
-                        className={`${state === "chat" ? "w-full" : "w-0"} flex-grow bg-black h-auto overflow-hidden duration-200 relative`}
+                        className={`${
+                            state === "chat" ? "w-full" : "w-0"
+                        } flex-grow bg-black h-auto overflow-hidden duration-200 relative`}
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
                                 sendPrivateMessage();
@@ -325,8 +358,13 @@ const MessengerPage = ({
                         }}
                     >
                         {chat && state === "chat" && (
-                            <div id="chat-scrollable" className={`h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse`}>
-                                {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && socket ? (
+                            <div
+                                id="chat-scrollable"
+                                className={`h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse`}
+                            >
+                                {currentRoomWith in chat &&
+                                chat[currentRoomWith].length !== 0 &&
+                                socket ? (
                                     <Chat
                                         token={token}
                                         id={id}
@@ -354,10 +392,10 @@ const MessengerPage = ({
                             </div>
                         )}
                         <div className="flex flex-row w-[calc(100%-10px)] h-[40px] absolute left-0 bottom-[5px] ml-[5px]">
-                            <div className="flex-grow bg-zinc-950 border-borders border-[1px] h-full rounded-full px-4 ">
+                            <div className="flex-grow bg-zinc-900 border-zinc-800 border-[1px] h-full rounded-full pl-4 pr-11 ">
                                 <textarea
                                     id="search-input"
-                                    className="resize-none placeholder:text-zinc-500 bg-zinc-950 text-[14px] outline-none py-[8px] h-[100%] w-full"
+                                    className="resize-none placeholder:text-zinc-500 bg-zinc-900 text-[14px] outline-none py-[8px] h-full w-full"
                                     autoComplete="off"
                                     value={messageInput}
                                     onChange={(e) => setMessageInput(e.target.value)}
@@ -368,14 +406,18 @@ const MessengerPage = ({
                                         }
                                     }}
                                 />
+                                <button
+                                    id="search-button"
+                                    className="text-blue-500 absolute top-0 right-[8px] bg-w-[40px] active:text-blue-300 duration-100 cursor-pointer rounded-full aspect-square h-full ml-[5px]"
+                                    onClick={sendPrivateMessage}
+                                >
+                                    <SendRoundedIcon
+                                        style={{
+                                            marginLeft: "4px",
+                                        }}
+                                    />
+                                </button>
                             </div>
-                            <button
-                                id="search-button"
-                                className="text-black bg-white w-[40px] active:bg-text_2 active:text-black duration-100 cursor-pointer rounded-full h-full relative ml-[5px]"
-                                onClick={sendPrivateMessage}
-                            >
-                                <i className="bi bi-send absolute top-[53%] left-[48%] -translate-x-1/2 -translate-y-1/2"></i>
-                            </button>
                         </div>
                     </div>
                 </div>

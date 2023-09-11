@@ -1,13 +1,22 @@
 import React from "react";
 import Loading from "./Loading";
 
-const Menu = ({ menu, state, userOnClick }: { menu: User | null; state: "chat" | "menu"; userOnClick: (username: string) => void }) => {
+const Menu = ({
+    menu,
+    state,
+    userOnClick,
+}: {
+    menu: User | null;
+    state: "chat" | "menu";
+    userOnClick: (username: string) => void;
+}) => {
+    console.log(menu);
     return (
         <div
             id="menu"
             className={`${
                 state === "menu" ? "w-full" : "w-0"
-            } relative sm:w-[400px] bg-zinc-950 md:border-r md:border-r-borders h-full duration-200 overflow-y-scroll`}
+            } relative sm:w-[400px] bg-zinc-900 md:border-r md:border-r-zinc-800 h-full duration-200 overflow-y-scroll`}
         >
             {menu && "rooms" in menu && menu.rooms.length !== 0 ? (
                 menu.rooms.map((elem) => (
@@ -17,16 +26,25 @@ const Menu = ({ menu, state, userOnClick }: { menu: User | null; state: "chat" |
                     >
                         <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-zinc-800"></div>
                         <div className="flex flex-col relative w-full">
-                            <div className="text-[18px] mt-[6px] ml-[10px] font-semibold group-hover:text-black duration-200">{elem.username}</div>
+                            <div className="text-[18px] mt-[6px] ml-[10px] font-semibold group-hover:text-black duration-200">
+                                {elem.username}
+                            </div>
                             <div className="text-[14px] text-zinc-500 mt-[0px] ml-[10px] max-w-[50%] overflow-hidden group-hover:text-black duration-200">
-                                {elem.last_message.content.length > 25 ? elem.last_message.content.slice(0, 25) + "..." : elem.last_message.content}
+                                {elem.last_message.content.length > 25
+                                    ? elem.last_message.content.slice(0, 25) + "..."
+                                    : elem.last_message.content}
                             </div>
 
                             <div className="ml-[0px] h-[20px] absolute bottom-[8px] text-zinc-500 group-hover:text-black duration-200 right-[8px] inline-block w-[72px] text-right">
-                                <div className="inline-block text-right mr-[8px] text-[12px]  w-fit ">{`${new Date(elem.last_message.time)
+                                <div className="inline-block text-right mr-[8px] text-[12px] relative top-[-1px] w-fit">{`${new Date(
+                                    elem.last_message.time
+                                )
                                     .getHours()
                                     .toString()
-                                    .padStart(2, "0")}:${new Date(elem.last_message.time).getMinutes().toString().padStart(2, "0")}`}</div>
+                                    .padStart(2, "0")}:${new Date(elem.last_message.time)
+                                    .getMinutes()
+                                    .toString()
+                                    .padStart(2, "0")}`}</div>
 
                                 {elem.username === elem.last_message.receiver &&
                                     (elem.last_message.seen ? (
@@ -45,7 +63,10 @@ const Menu = ({ menu, state, userOnClick }: { menu: User | null; state: "chat" |
                     </div>
                 ))
             ) : (
-                <div key="menu-loading" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-1 py-1 bg-zinc-800 rounded-2xl text-[14px]">
+                <div
+                    key="menu-loading"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-1 py-1 bg-zinc-800 rounded-2xl text-[14px]"
+                >
                     <Loading color="white" />
                 </div>
             )}
