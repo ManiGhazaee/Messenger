@@ -379,6 +379,58 @@ io.on("connection", (socket: Socket) => {
         });
     });
 
+    socket.on("deleteChat", async (data: { token: string; id: string; sender: string; receiver: string }) => {
+        if (!isAuthorized(data.token)) return;
+
+        try {
+            const room = await RoomModel.findOneAndDelete({
+                participants: { $all: [data.sender, data.receiver] },
+            });
+
+            if (!room) return;
+
+            const roomId = room._id.toString();
+            const [newSender, newReceiver] = await Promise.all([
+                UserModel.findOneAndUpdate(
+                    { username: data.sender },
+                    {
+                        $pull: { rooms: { id: roomId } },
+                    },
+                    {
+                        new: true,
+                    }
+                ),
+                UserModel.findOneAndUpdate(
+                    { username: data.receiver },
+                    {
+                        $pull: { rooms: { id: roomId } },
+                    },
+                    {
+                        new: true,
+                    }
+                ),
+            ]);
+
+            if (!newReceiver || !newSender) return;
+
+            socket.emit("menu", { user: newSender, success: true, message: "User found" });
+
+            socket.to(newReceiver.username).emit("menu", { user: newReceiver, success: true, message: "User found" });
+
+            socket.emit("profile", {
+                success: true,
+                message: "Messages found",
+                new_messages_marker: null,
+                username: newReceiver.username,
+                bio: newReceiver.bio,
+                room_id: roomId,
+                messages: [],
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    });
+
     socket.on("disconnect", () => {
         console.log("A user disconnected");
         if (room) {

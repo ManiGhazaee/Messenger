@@ -10,7 +10,7 @@ const MoreOptions = ({ display, displayFn, items }: { display: boolean; displayF
                     {createPortal(
                         <>
                             <div onClick={() => displayFn(false)} className="absolute top-0 left-0 z-[130] w-screen h-screen"></div>
-                            <div className="more_options absolute right-[18px] top-[50px] z-[180] w-[180px] bg-black rounded-xl">
+                            <div className="more_options absolute right-[18px] top-[50px] z-[180] w-[180px] bg-black border border-borders rounded-xl">
                                 {items &&
                                     items.length !== 0 &&
                                     items.map((elem) => (

@@ -43,6 +43,7 @@ const MessengerPage = ({
     });
     const [chatMoreModalDisplay, setChatMoreModalDisplay] = useState<boolean>(false);
     const [clearHistoryConfirmModal, setClearHistoryConfirmModal] = useState<boolean>(false);
+    const [deleteChatConfirmModal, setDeleteChatConfirmModal] = useState<boolean>(false);
 
     console.log(chat);
 
@@ -247,6 +248,12 @@ const MessengerPage = ({
             socket.emit("clearHistory", { token, id, sender: username, receiver: currentRoomWith });
         }
     };
+    const deleteChat = () => {
+        setDeleteChatConfirmModal(false);
+        if (socket) {
+            socket.emit("deleteChat", { token, id, sender: username, receiver: currentRoomWith });
+        }
+    };
 
     return (
         <div className="h-screen">
@@ -267,6 +274,13 @@ const MessengerPage = ({
                             setClearHistoryConfirmModal(true);
                         },
                     },
+                    {
+                        text: "Delete Chat",
+                        onClick: () => {
+                            setDeleteChatConfirmModal(true);
+                        },
+                        style: { color: "red" },
+                    },
                 ]}
                 display={chatMoreModalDisplay}
                 displayFn={setChatMoreModalDisplay}
@@ -277,6 +291,15 @@ const MessengerPage = ({
                 onOkFn={clearHistory}
                 title="Clear History"
                 message={`This will clear all messages. Are you sure you want to clear the history with ${currentRoomWith}?`}
+                okText="Yes"
+                cancelText="No"
+            />
+            <ConfirmModal
+                display={deleteChatConfirmModal}
+                displayFn={setDeleteChatConfirmModal}
+                onOkFn={deleteChat}
+                title="Delete Chat"
+                message={`This will remove ${currentRoomWith} from your menu and delete all messages for both sides. Are you sure you want to delete chat with ${currentRoomWith}?`}
                 okText="Yes"
                 cancelText="No"
             />

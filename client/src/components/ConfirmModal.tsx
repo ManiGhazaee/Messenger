@@ -78,14 +78,14 @@ const ConfirmModal = ({
                     ))}
                 <div className="flex flex-row relative bottom-0 justify-evenly mt-[40px] mb-[8px]">
                     <div
-                        className="w-[calc(50%-12px)] text-center border border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white cursor-pointer text-[14px] py-[4px]"
+                        className="w-[calc(50%-12px)] text-center border duration-200 border-red-600 rounded text-red-600 hover:bg-red-600 hover:text-white cursor-pointer text-[14px] py-[4px]"
                         onClick={() => onOk()}
                         style={okStyle}
                     >
                         {okText || "Ok"}
                     </div>
                     <div
-                        className="w-[calc(50%-12px)] text-center border border-borders rounded cursor-pointer hover:bg-white hover:text-black hover:border-white text-[14px] py-[4px]"
+                        className="w-[calc(50%-12px)] text-center duration-200 border border-borders rounded cursor-pointer hover:bg-white hover:text-black hover:border-white text-[14px] py-[4px]"
                         onClick={() => displayFn(false)}
                         style={okStyle}
                     >
