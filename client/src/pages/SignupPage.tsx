@@ -8,9 +8,8 @@ const SignupPage = ({
     socket,
 }: {
     Data: {
-        setTokenFunction: (string: string) => void;
-        setIdFunction: (string: string) => void;
-        setUsernameFunction: (string: string) => void;
+        setToken: (string: string) => void;
+        setUsername: (string: string) => void;
     };
     socket: Socket | null;
 }) => {
@@ -33,15 +32,16 @@ const SignupPage = ({
                     message: string;
                     success: boolean;
                 }) => {
-                    console.log(data);
-                    if (data.success === true && data.token && data.id && data.username) {
-                        Data.setTokenFunction(data.token);
-                        Data.setIdFunction(data.id);
-                        Data.setUsernameFunction(data.username);
+                    console.log("signup data", data);
+
+                    if (data.token && data.id && data.username) {
+                        Data.setToken(data.token);
+                        Data.setUsername(data.username);
                         navigate("/messenger");
                         window.location.reload();
                     } else {
                         setMessage(data.message);
+                        setisLoading(false);
                     }
                 }
             );
@@ -55,6 +55,7 @@ const SignupPage = ({
                 setMessage(
                     "Password and confirm password do not match. Please make sure you enter the same password in both fields."
                 );
+                setisLoading(false);
                 return;
             }
 
@@ -73,9 +74,6 @@ const SignupPage = ({
                     id="logo-cont"
                     className="inline-block relative text-[24px] left-1/2 -translate-x-1/2 font-bold mx-auto mt-[12px]"
                 >
-                    <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500 px-[1px]">
-                        S
-                    </span>
                     <span>Messanger</span>
                 </div>
             </Link>
@@ -86,7 +84,7 @@ const SignupPage = ({
                     </h2>
                     <div className="mb-4">
                         <input
-                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
+                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-blue-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-blue-500"
                             type="text"
                             placeholder="Username"
                             value={username}
@@ -96,7 +94,7 @@ const SignupPage = ({
                     </div>
                     <div className="mb-4">
                         <input
-                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
+                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-blue-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-blue-500"
                             type="email"
                             placeholder="Email"
                             value={email}
@@ -106,7 +104,7 @@ const SignupPage = ({
                     </div>
                     <div className="mb-4">
                         <input
-                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
+                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-blue-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-blue-500"
                             type="password"
                             placeholder="Password"
                             value={password}
@@ -116,7 +114,7 @@ const SignupPage = ({
                     </div>
                     <div className="mb-6">
                         <input
-                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
+                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-blue-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-blue-500"
                             type="password"
                             placeholder="Confirm Password"
                             value={confirmPassword}
@@ -126,7 +124,7 @@ const SignupPage = ({
                     </div>
                     <div className="flex items-center justify-between">
                         <button
-                            className="bg-orange-500 hover:bg-red-600 text-black font-bold py-[6px] px-4 rounded focus:outline-none focus:shadow-outline w-full transition"
+                            className="bg-blue-500 hover:bg-blue-600 text-black font-bold py-[6px] px-4 rounded focus:outline-none focus:shadow-outline w-full transition"
                             type="button"
                             onClick={handleSignUp}
                         >
@@ -143,7 +141,7 @@ const SignupPage = ({
                     </div>
                     <div className="flex items-center justify-between mt-[20px]">
                         <span className="text-text_2">Already have an account? </span>
-                        <Link to="/login" className="text-orange-500 hover:text-red-600">
+                        <Link to="/login" className="text-blue-500 hover:text-blue-600">
                             Login
                         </Link>
                     </div>

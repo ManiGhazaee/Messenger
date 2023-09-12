@@ -47,7 +47,8 @@ export async function signup(socket: Socket, data: SignupData) {
         if (!usernameRegex.test(username)) {
             socket.emit("signup", {
                 success: false,
-                message: "Username must be between 3 to 15 characters and can only contain letters, numbers, hyphens, and underscores.",
+                message:
+                    "Username must be between 3 to 15 characters and can only contain letters, numbers, hyphens, and underscores.",
             });
             return;
         }
@@ -95,7 +96,10 @@ export async function signup(socket: Socket, data: SignupData) {
 
         const id = userFromDb ? userFromDb.id.toString() : "none";
 
-        const token = jwt.sign(user.username, process.env.ACCESS_TOKEN_SECRET!);
+        const token = jwt.sign(
+            { username: user.username, id: id },
+            process.env.ACCESS_TOKEN_SECRET!
+        );
 
         console.log("User '", user.username, "' signed up at ", new Date());
         socket.emit("signup", {
@@ -139,7 +143,10 @@ export async function login(socket: Socket, data: LoginData) {
         }
 
         if (await bcrypt.compare(password, user.password)) {
-            const token = jwt.sign(user.username, process.env.ACCESS_TOKEN_SECRET!);
+            const token = jwt.sign(
+                { username: user.username, id: user.id.toString() },
+                process.env.ACCESS_TOKEN_SECRET!
+            );
 
             console.log("User '", user.username, "' logged in at ", new Date());
             socket.emit("login", {
@@ -150,7 +157,12 @@ export async function login(socket: Socket, data: LoginData) {
                 message: "Logged in successfully",
             });
         } else {
-            console.log("User '", user.username, "' failed login (incorrect password) at ", new Date());
+            console.log(
+                "User '",
+                user.username,
+                "' failed login (incorrect password) at ",
+                new Date()
+            );
             socket.emit("login", { success: false, message: "Password incorrect" });
         }
     } catch (e) {
@@ -191,7 +203,10 @@ export async function userByName(username: string) {
     }
 }
 
-export function roomIdWith(id: string, user: mongoose.Document<unknown, {}, DUser> & DUser & { _id: mongoose.Types.ObjectId }) {
+export function roomIdWith(
+    id: string,
+    user: mongoose.Document<unknown, {}, DUser> & DUser & { _id: mongoose.Types.ObjectId }
+) {
     if (user.rooms.length === 0) return false;
 
     for (let i = 0; i < user.rooms.length; i++) {
@@ -202,7 +217,11 @@ export function roomIdWith(id: string, user: mongoose.Document<unknown, {}, DUse
     return false;
 }
 
-export async function addMessageToRoomByParticipants(senderName: string, receiverName: string, message: Message): Promise<[boolean, string | null]> {
+export async function addMessageToRoomByParticipants(
+    senderName: string,
+    receiverName: string,
+    message: Message
+): Promise<[boolean, string | null]> {
     try {
         const room = await RoomModel.findOne({
             participants: { $all: [senderName, receiverName] },
@@ -245,7 +264,10 @@ export async function getRoom(id: string, limit: number) {
     }
 }
 
-export async function search(username: string, limit: number): Promise<false | { username: string; bio: string }[]> {
+export async function search(
+    username: string,
+    limit: number
+): Promise<false | { username: string; bio: string }[]> {
     try {
         const users = await UserModel.find({ username: { $regex: username, $options: "i" } })
             .limit(limit)
@@ -269,7 +291,12 @@ export async function search(username: string, limit: number): Promise<false | {
     }
 }
 
-export async function createRoom(sender: DUserDoc, receiver: DUserDoc, message: Message, maxUsers: number) {
+export async function createRoom(
+    sender: DUserDoc,
+    receiver: DUserDoc,
+    message: Message,
+    maxUsers: number
+) {
     try {
         const newRoom = new RoomModel({
             participants: [sender.username, receiver.username],
@@ -322,7 +349,12 @@ export async function addMessageToRoom(message: Message, roomId: string) {
     console.timeEnd("addMessageToRoom performance");
 }
 
-export async function addLastMessageToRoom(sender: DUserDoc, receiver: DUserDoc, message: Message, roomId: string) {
+export async function addLastMessageToRoom(
+    sender: DUserDoc,
+    receiver: DUserDoc,
+    message: Message,
+    roomId: string
+) {
     try {
         const senderRoom = sender.rooms.find((room) => room.id === roomId);
         if (senderRoom && "last_message" in senderRoom) {

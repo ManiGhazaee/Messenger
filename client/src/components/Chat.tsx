@@ -8,7 +8,6 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 const Chat = ({
     token,
-    id,
     socket,
     selfUsername,
     chat,
@@ -18,7 +17,6 @@ const Chat = ({
     setNewMessagesMarker,
 }: {
     token: string | null;
-    id: string | null;
     socket: Socket;
     selfUsername: string | null;
     chat: Message[];
@@ -85,10 +83,10 @@ const Chat = ({
     };
 
     const deleteMessageOnClick = (index: number, message: Message) => {
-        if (!token || !id) return;
+        if (!token) return;
         const isSelfSender = chat[index].sender === selfUsername;
 
-        socket.emit("deleteMessage", { token, id, message });
+        socket.emit("deleteMessage", { token, message });
         setChat((prev) => {
             let obj = { ...prev };
             if (isSelfSender) {

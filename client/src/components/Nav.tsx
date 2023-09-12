@@ -22,7 +22,7 @@ const Nav = ({
         >
             <div
                 onClick={moreOnClick}
-                className="flex flex-col relative text-[22px] cursor-pointer"
+                className="flex flex-col relative text-[22px] text-zinc-600 cursor-pointer"
             >
                 {state === "chat" ? (
                     <i className="bi bi-chevron-left"></i>
@@ -53,7 +53,7 @@ const Nav = ({
             {state === "chat" && (
                 <div
                     onClick={() => chatMoreOnClick()}
-                    className="absolute right-[31px] top-[31px] cursor-pointer"
+                    className="absolute right-[31px] top-[31px] text-zinc-600 cursor-pointer"
                 >
                     <i className="bi bi-three-dots-vertical absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
                 </div>

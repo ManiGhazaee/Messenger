@@ -21,13 +21,11 @@ export type TChat = {
 const MessengerPage = ({
     socket,
     menu,
-    id,
     username,
     token,
 }: {
     socket: Socket | null;
     menu: User | null;
-    id: string | null;
     username: string | null;
     token: string | null;
 }) => {
@@ -199,14 +197,14 @@ const MessengerPage = ({
                 content: messageInput,
                 time: new Date(),
             });
-            socket.emit("menu", { token, id });
+            socket.emit("menu", { token });
         }
         setMessageInput("");
     };
 
     const searchOnClick = () => {
         if (socket) {
-            socket.emit("search", { token, id, search: searchInput });
+            socket.emit("search", { token, search: searchInput });
         }
     };
 
@@ -216,7 +214,7 @@ const MessengerPage = ({
         setSearchState(false);
         setChatUsername(username);
         if (socket) {
-            socket.emit("profile", { token, id, username });
+            socket.emit("profile", { token, username });
         }
     };
 
@@ -237,7 +235,6 @@ const MessengerPage = ({
         if (socket) {
             socket.emit("seen", {
                 token,
-                id,
                 index: message.index,
                 message,
                 is_last,
@@ -260,13 +257,13 @@ const MessengerPage = ({
     const clearHistory = () => {
         setClearHistoryConfirmModal(false);
         if (socket) {
-            socket.emit("clearHistory", { token, id, sender: username, receiver: currentRoomWith });
+            socket.emit("clearHistory", { token, sender: username, receiver: currentRoomWith });
         }
     };
     const deleteChat = () => {
         setDeleteChatConfirmModal(false);
         if (socket) {
-            socket.emit("deleteChat", { token, id, sender: username, receiver: currentRoomWith });
+            socket.emit("deleteChat", { token, sender: username, receiver: currentRoomWith });
         }
     };
 
@@ -367,7 +364,6 @@ const MessengerPage = ({
                                 socket ? (
                                     <Chat
                                         token={token}
-                                        id={id}
                                         chat={chat[currentRoomWith]}
                                         setChat={setChat}
                                         selfUsername={username}

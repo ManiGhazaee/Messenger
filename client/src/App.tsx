@@ -7,55 +7,20 @@ import { useNavigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import useSocket from "./components/useSocket";
 
-export const TOKEN_STORAGE_KEY = "authToken";
-export const ID_STORAGE_KEY = "id";
-export const USERNAME_STORAGE_KEY = "username";
+export const TOKEN_STORAGE_KEY = "TOKEN";
 
 function App() {
     const navigate = useNavigate();
     const tokenLs = localStorage.getItem(TOKEN_STORAGE_KEY);
-    const idLs = localStorage.getItem(ID_STORAGE_KEY);
-    const usernameLs = localStorage.getItem(USERNAME_STORAGE_KEY);
+
+    const changeToken = (newToken: string) => {
+        setToken(newToken);
+        localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+    };
 
     const [token, setToken] = useState(tokenLs);
-    const [id, setId] = useState(idLs);
-    const [username, setUsername] = useState(usernameLs);
+    const [username, setUsername] = useState<string | null>(null);
     const [menu, setMenu] = useState<User | null>(null);
-
-    const changeToken = (string: string) => {
-        setToken(string);
-    };
-    const changeId = (string: string) => {
-        setId(string);
-    };
-    const changeUsername = (string: string) => {
-        setUsername(string);
-    };
-
-    useEffect(() => {
-        document.addEventListener("contextmenu", (e) => {
-            // e.preventDefault();
-        });
-    }, []);
-
-    useEffect(() => {
-        if (token) {
-            localStorage.setItem(TOKEN_STORAGE_KEY, token);
-        } else {
-            localStorage.removeItem(TOKEN_STORAGE_KEY);
-        }
-        if (id) {
-            localStorage.setItem(ID_STORAGE_KEY, id);
-        } else {
-            localStorage.removeItem(ID_STORAGE_KEY);
-        }
-        if (username) {
-            localStorage.setItem(USERNAME_STORAGE_KEY, username);
-        } else {
-            localStorage.removeItem(USERNAME_STORAGE_KEY);
-        }
-    }, [token, id, username]);
-
     const [socket, setSocket] = useState<Socket | null>(null);
 
     useEffect(() => {
@@ -68,7 +33,8 @@ function App() {
     }, []);
 
     useSocket(socket, "menu", (data: { success: boolean; message: string; user: User }) => {
-        console.log("menu", data);
+        console.log("menu data", data);
+
         if (!data.success) {
             navigate("/login");
         } else if (data && "user" in data && data.user) {
@@ -78,23 +44,27 @@ function App() {
     });
 
     useEffect(() => {
-        if (socket && token && id) {
-            socket.emit("join", { token, id });
-            socket.emit("menu", { token, id });
+        if (socket && token) {
+            socket.emit("join", { token });
+            socket.emit("menu", { token });
         }
     }, [socket]);
 
     return (
         <Routes>
-            <Route path="/messenger" element={<MessengerPage socket={socket} menu={menu} id={id} token={token} username={username} />} />
+            <Route
+                path="/messenger"
+                element={
+                    <MessengerPage socket={socket} menu={menu} token={token} username={username} />
+                }
+            />
             <Route
                 path="/signup"
                 element={
                     <SignupPage
                         Data={{
-                            setTokenFunction: changeToken,
-                            setIdFunction: changeId,
-                            setUsernameFunction: changeUsername,
+                            setToken: changeToken,
+                            setUsername: setUsername,
                         }}
                         socket={socket}
                     />
@@ -105,10 +75,8 @@ function App() {
                 element={
                     <LoginPage
                         Data={{
-                            token: token || "",
-                            setTokenFunction: changeToken,
-                            id: id || "",
-                            setIdFunction: changeId,
+                            setToken: changeToken,
+                            setUsername: setUsername,
                         }}
                         socket={socket}
                     />

@@ -16,7 +16,7 @@ import {
     setNotSeenForUsers,
 } from "./functions/account";
 import mongoose from "mongoose";
-import { isAuthorized } from "./functions/auth";
+import { auth } from "./functions/auth";
 import RoomModel from "./models/room";
 import UserModel from "./models/user";
 require("dotenv").config();
@@ -53,138 +53,166 @@ io.on("connection", (socket: Socket) => {
 
     let room: string | null = null;
 
-    socket.on("search", async (data: { token: string; id: string; search: string }) => {
-        console.log("socket.on search executed");
-        if (isAuthorized(data.token)) {
+    socket.on("search", async (data: { token: string; search: string }) => {
+        try {
+            const token = auth(data.token);
+            if (token === null) {
+                return;
+            }
+
             const users = await search(data.search, 20);
             if (users) {
                 socket.emit("search", { success: true, message: "Users found", users: users });
             }
-        } else {
-            socket.emit("search", { success: false, message: "Token not provided" });
+        } catch (e) {
+            console.log("search error", e);
         }
     });
 
-    socket.on("menu", async (data: { token: string; id: string }) => {
-        console.log("socket.on menu executed");
-        if (isAuthorized(data.token)) {
-            const u = await userById(data.id);
-            if (u) {
-                socket.emit("menu", { user: u, success: true, message: "User found" });
+    socket.on("menu", async (data: { token: string }) => {
+        try {
+            const token = auth(data.token);
+            if (token === null) {
+                socket.emit("menu", { success: false, message: "Token not provided" });
+                return;
+            }
+
+            const { id } = token;
+
+            const user = await userById(id);
+            if (user) {
+                socket.emit("menu", { user, success: true, message: "User found" });
             } else {
                 socket.emit("menu", { success: false, message: "User not found" });
             }
-        } else {
-            socket.emit("menu", { success: false, message: "Token not provided" });
+        } catch (e) {
+            console.log("menu error", e);
         }
     });
 
-    socket.on("profile", async (data: { token: string; id: string; username: string }) => {
-        console.log("socket.on profile executed");
-        if (!isAuthorized(data.token)) {
-            socket.emit("profile", { success: false, message: "Token not provided" });
-            return;
-        }
+    socket.on("profile", async (data: { token: string; username: string }) => {
+        try {
+            const token = auth(data.token);
+            if (token === null) {
+                return;
+            }
 
-        const user = await userByName(data.username);
-        if (!user) {
-            socket.emit("profile", { success: false, message: "User not found" });
-            return;
-        }
+            const { id } = token;
 
-        const roomId = roomIdWith(data.id, user);
-        if (!roomId) {
-            socket.emit("profile", {
-                success: true,
-                message: "No messages",
-                username: user.username,
-                bio: user.bio,
-            });
-            return;
-        }
+            const user = await userByName(data.username);
+            if (!user) {
+                socket.emit("profile", { success: false, message: "User not found" });
+                return;
+            }
 
-        const messages = await getRoom(roomId, 200);
-        if (messages && messages.length !== 0) {
-            const newMessagesMarker: number | null = findNewMessagesIndexMarker(messages, user.username);
+            const roomId = roomIdWith(id, user);
+            if (!roomId) {
+                socket.emit("profile", {
+                    success: true,
+                    message: "No messages",
+                    username: user.username,
+                    bio: user.bio,
+                });
+                return;
+            }
 
-            socket.emit("profile", {
-                success: true,
-                message: "Messages found",
-                new_messages_marker: newMessagesMarker,
-                username: user.username,
-                bio: user.bio,
-                room_id: roomId,
-                messages: messages,
-            });
-        } else {
-            socket.emit("profile", { success: false, message: "No Messages Found" });
+            const messages = await getRoom(roomId, 200);
+            if (messages && messages.length !== 0) {
+                const newMessagesMarker: number | null = findNewMessagesIndexMarker(
+                    messages,
+                    user.username
+                );
+
+                socket.emit("profile", {
+                    success: true,
+                    message: "Messages found",
+                    new_messages_marker: newMessagesMarker,
+                    username: user.username,
+                    bio: user.bio,
+                    room_id: roomId,
+                    messages: messages,
+                });
+            } else {
+                socket.emit("profile", { success: false, message: "No Messages Found" });
+            }
+        } catch (e) {
+            console.log("profile error", e);
         }
     });
 
-    socket.on("seen", async (data: { token: string; id: string; message: Message; index: number; is_last: boolean }) => {
-        // console.log("socket.on seen executed");
-        if (!isAuthorized(data.token)) {
-            return;
-        }
+    socket.on(
+        "seen",
+        async (data: { token: string; message: Message; index: number; is_last: boolean }) => {
+            try {
+                const token = auth(data.token);
+                if (token === null) {
+                    return;
+                }
 
-        data.message.seen = true;
+                data.message.seen = true;
 
-        socket.to(data.message.sender).emit("seen", { message: data.message });
+                socket.to(data.message.sender).emit("seen", { message: data.message });
 
-        const [sender, receiver] = await Promise.all([userByName(data.message.sender), userByName(data.message.receiver)]);
-        if (!sender || !receiver) {
-            return;
-        }
+                const [sender, receiver] = await Promise.all([
+                    userByName(data.message.sender),
+                    userByName(data.message.receiver),
+                ]);
+                if (!sender || !receiver) {
+                    return;
+                }
 
-        const roomId = roomIdWith(sender._id.toString(), receiver);
-        if (!roomId) {
-            return;
-        }
+                const roomId = roomIdWith(sender._id.toString(), receiver);
+                if (!roomId) {
+                    return;
+                }
 
-        const room = await RoomModel.findById(roomId);
-        if (!room) {
-            return;
-        }
+                const room = await RoomModel.findById(roomId);
+                if (!room) {
+                    return;
+                }
 
-        let firstSeenIndex: number | null = null;
-        for (let i = 0; i < room.messages.length; i++) {
-            if (room.messages[i].index === data.index) {
-                room.messages[i].seen = true;
-                firstSeenIndex = i;
-                // notSeenCount = i;
+                let firstSeenIndex: number | null = null;
+                for (let i = 0; i < room.messages.length; i++) {
+                    if (room.messages[i].index === data.index) {
+                        room.messages[i].seen = true;
+                        firstSeenIndex = i;
+                    }
+                }
+                if (firstSeenIndex !== null) {
+                    let max: number = Math.min(firstSeenIndex + 200, room.messages.length);
+                    for (let i = firstSeenIndex; i < max; i++) {
+                        room.messages[i].seen = true;
+                    }
+                }
+
+                await room.save();
+
+                await setNotSeenForUsers(data.message.sender, data.message.receiver);
+
+                if (data.is_last) {
+                    await addLastMessageToRoom(sender, receiver, data.message, roomId);
+                }
+
+                const newSender = await userByName(data.message.sender);
+                if (newSender) {
+                    socket.to(newSender._id.toString()).emit("menu", {
+                        user: newSender,
+                        success: true,
+                    });
+                }
+
+                const newReceiver = await userByName(data.message.receiver);
+                if (newReceiver) {
+                    socket.emit("menu", {
+                        user: newReceiver,
+                        success: true,
+                    });
+                }
+            } catch (e) {
+                console.log("seen error", e);
             }
         }
-        if (firstSeenIndex !== null) {
-            let max: number = Math.min(firstSeenIndex + 200, room.messages.length);
-            for (let i = firstSeenIndex; i < max; i++) {
-                room.messages[i].seen = true;
-            }
-        }
-
-        await room.save();
-
-        await setNotSeenForUsers(data.message.sender, data.message.receiver);
-
-        if (data.is_last) {
-            await addLastMessageToRoom(sender, receiver, data.message, roomId);
-        }
-
-        const newSender = await userByName(data.message.sender);
-        if (newSender) {
-            socket.to(newSender._id.toString()).emit("menu", {
-                user: newSender,
-                success: true,
-            });
-        }
-
-        const newReceiver = await userByName(data.message.receiver);
-        if (newReceiver) {
-            socket.emit("menu", {
-                user: newReceiver,
-                success: true,
-            });
-        }
-    });
+    );
 
     socket.on("signup", (data: SignupData) => {
         signup(socket, data);
@@ -194,105 +222,124 @@ io.on("connection", (socket: Socket) => {
         login(socket, data);
     });
 
-    socket.on("join", async (data: { token: string; id: string }) => {
-        // console.log("socket.on join executed");
-        if (!isAuthorized(data.token)) {
-            socket.emit("join", { success: false, message: "Token not provided" });
-            return;
-        }
-        const user = await userById(data.id);
-        if (user) {
-            socket.join([data.id, user.username]);
-        }
-        // console.log(`User joined room ${data.id}`);
-    });
-
-    socket.on("message", async (data: { token: string; index: number; sender: string; receiver: string; content: string; time: Date }) => {
-        // console.log("socket.on message executed");
-        // console.time("socket.on message performance");
+    socket.on("join", async (data: { token: string }) => {
         try {
-            if (!isAuthorized(data.token)) {
-                socket.emit("message", { success: false, message: "Token not provided" });
+            const token = auth(data.token);
+            if (token === null) {
                 return;
             }
 
-            const message: Message = {
-                index: data.index,
-                sender: data.sender,
-                receiver: data.receiver,
-                content: data.content,
-                seen: false,
-                time: data.time,
-            };
+            const { id } = token;
 
-            socket.to(data.receiver).emit("message", {
-                success: true,
-                message: message,
-            });
-
-            socket.emit("message", { success: true, message: message });
-
-            const [isMessageAdded, roomId] = await addMessageToRoomByParticipants(data.sender, data.receiver, message);
-            // console.log("socket.on message: added message");
-
-            // if (messageIndex !== null) {
-            //     message.index = messageIndex;
-            // }
-
-            const [sender, receiver] = await Promise.all([userByName(data.sender), userByName(data.receiver)]);
-            // console.log("socket.on message: got sender receiver from db");
-
-            if (!sender || !receiver) {
-                socket.emit("message", { success: false, message: "User not found" });
-                return;
-            }
-
-            if (isMessageAdded && roomId) {
-                await addLastMessageToRoom(sender, receiver, message, roomId);
-                // console.log("socket.on message: added last message to userrooms");
-
-                await setNotSeenForUsers(data.sender, data.receiver);
-
-                const [newSender, newReceiver] = await Promise.all([userByName(data.sender), userByName(data.receiver)]);
-                // console.log("socket.on message: got new receiver, sender ");
-
-                if (newReceiver && newSender) {
-                    socket.to(newReceiver._id.toString()).emit("menu", {
-                        user: newReceiver,
-                        success: true,
-                    });
-                    socket.emit("menu", {
-                        user: newSender,
-                        success: true,
-                    });
-                }
-            } else {
-                await createRoom(sender, receiver, message, 2);
-
-                await setNotSeenForUsers(data.sender, data.receiver);
-
-                const [newSender, newReceiver] = await Promise.all([userByName(data.sender), userByName(data.receiver)]);
-
-                if (newReceiver && newSender) {
-                    socket.to(newReceiver._id.toString()).emit("menu", {
-                        user: newReceiver,
-                        success: true,
-                    });
-                    socket.emit("menu", {
-                        user: newSender,
-                        success: true,
-                    });
-                }
+            const user = await userById(id);
+            if (user) {
+                socket.join([id, user.username]);
             }
         } catch (e) {
-            console.log("socket.on message", e);
+            console.log("join error", e);
         }
-
-        // console.timeEnd("socket.on message performance");
     });
 
+    socket.on(
+        "message",
+        async (data: {
+            token: string;
+            index: number;
+            sender: string;
+            receiver: string;
+            content: string;
+            time: Date;
+        }) => {
+            try {
+                const token = auth(data.token);
+                if (token === null) {
+                    return;
+                }
+
+                const message: Message = {
+                    index: data.index,
+                    sender: data.sender,
+                    receiver: data.receiver,
+                    content: data.content,
+                    seen: false,
+                    time: data.time,
+                };
+
+                socket.to(data.receiver).emit("message", {
+                    success: true,
+                    message: message,
+                });
+
+                socket.emit("message", { success: true, message: message });
+
+                const [isMessageAdded, roomId] = await addMessageToRoomByParticipants(
+                    data.sender,
+                    data.receiver,
+                    message
+                );
+
+                const [sender, receiver] = await Promise.all([
+                    userByName(data.sender),
+                    userByName(data.receiver),
+                ]);
+
+                if (!sender || !receiver) {
+                    socket.emit("message", { success: false, message: "User not found" });
+                    return;
+                }
+
+                if (isMessageAdded && roomId) {
+                    await addLastMessageToRoom(sender, receiver, message, roomId);
+
+                    await setNotSeenForUsers(data.sender, data.receiver);
+
+                    const [newSender, newReceiver] = await Promise.all([
+                        userByName(data.sender),
+                        userByName(data.receiver),
+                    ]);
+
+                    if (newReceiver && newSender) {
+                        socket.to(newReceiver._id.toString()).emit("menu", {
+                            user: newReceiver,
+                            success: true,
+                        });
+                        socket.emit("menu", {
+                            user: newSender,
+                            success: true,
+                        });
+                    }
+                } else {
+                    await createRoom(sender, receiver, message, 2);
+
+                    await setNotSeenForUsers(data.sender, data.receiver);
+
+                    const [newSender, newReceiver] = await Promise.all([
+                        userByName(data.sender),
+                        userByName(data.receiver),
+                    ]);
+
+                    if (newReceiver && newSender) {
+                        socket.to(newReceiver._id.toString()).emit("menu", {
+                            user: newReceiver,
+                            success: true,
+                        });
+                        socket.emit("menu", {
+                            user: newSender,
+                            success: true,
+                        });
+                    }
+                }
+            } catch (e) {
+                console.log("message error", e);
+            }
+        }
+    );
+
     socket.on("deleteMessage", async (data: { message: Message; token: string; id: string }) => {
-        if (!isAuthorized(data.token)) return;
+        const token = auth(data.token);
+        if (token === null) {
+            return;
+        }
 
         socket.to(data.message.receiver).emit("deleteMessage", { message: data.message });
         socket.to(data.message.sender).emit("deleteMessage", { message: data.message });
@@ -309,83 +356,25 @@ io.on("connection", (socket: Socket) => {
         }
     });
 
-    socket.on("clearHistory", async (data: { token: string; id: string; sender: string; receiver: string }) => {
-        if (!isAuthorized(data.token)) return;
+    socket.on(
+        "clearHistory",
+        async (data: { token: string; id: string; sender: string; receiver: string }) => {
+            const token = auth(data.token);
+            if (token === null) {
+                return;
+            }
 
-        const room = await RoomModel.findOneAndUpdate(
-            {
-                participants: { $all: [data.sender, data.receiver] },
-            },
-            {
-                $set: {
-                    messages: [],
+            const room = await RoomModel.findOneAndUpdate(
+                {
+                    participants: { $all: [data.sender, data.receiver] },
                 },
-            },
-            { new: true }
-        );
-
-        if (!room) return;
-
-        const roomId = room._id.toString();
-        const [newSender, newReceiver] = await Promise.all([
-            UserModel.findOneAndUpdate(
-                { username: data.sender },
                 {
                     $set: {
-                        "rooms.$[elem].not_seen_count": 0,
-                        "rooms.$[elem].last_message.index": 0,
-                        "rooms.$[elem].last_message.seen": false,
-                        "rooms.$[elem].last_message.content": "",
-                        "rooms.$[elem].last_message.time": new Date(),
+                        messages: [],
                     },
                 },
-                {
-                    arrayFilters: [{ "elem.id": roomId }],
-                    new: true,
-                }
-            ),
-            UserModel.findOneAndUpdate(
-                { username: data.receiver },
-                {
-                    $set: {
-                        "rooms.$[elem].not_seen_count": 0,
-                        "rooms.$[elem].last_message.index": 0,
-                        "rooms.$[elem].last_message.seen": false,
-                        "rooms.$[elem].last_message.content": "",
-                        "rooms.$[elem].last_message.time": new Date(),
-                    },
-                },
-                {
-                    arrayFilters: [{ "elem.id": roomId }],
-                    new: true,
-                }
-            ),
-        ]);
-
-        if (!newReceiver || !newSender) return;
-
-        socket.emit("menu", { user: newSender, success: true, message: "User found" });
-
-        socket.to(newReceiver.username).emit("menu", { user: newReceiver, success: true, message: "User found" });
-
-        socket.emit("profile", {
-            success: true,
-            message: "Messages found",
-            new_messages_marker: null,
-            username: newReceiver.username,
-            bio: newReceiver.bio,
-            room_id: roomId,
-            messages: [],
-        });
-    });
-
-    socket.on("deleteChat", async (data: { token: string; id: string; sender: string; receiver: string }) => {
-        if (!isAuthorized(data.token)) return;
-
-        try {
-            const room = await RoomModel.findOneAndDelete({
-                participants: { $all: [data.sender, data.receiver] },
-            });
+                { new: true }
+            );
 
             if (!room) return;
 
@@ -394,18 +383,32 @@ io.on("connection", (socket: Socket) => {
                 UserModel.findOneAndUpdate(
                     { username: data.sender },
                     {
-                        $pull: { rooms: { id: roomId } },
+                        $set: {
+                            "rooms.$[elem].not_seen_count": 0,
+                            "rooms.$[elem].last_message.index": 0,
+                            "rooms.$[elem].last_message.seen": false,
+                            "rooms.$[elem].last_message.content": "",
+                            "rooms.$[elem].last_message.time": new Date(),
+                        },
                     },
                     {
+                        arrayFilters: [{ "elem.id": roomId }],
                         new: true,
                     }
                 ),
                 UserModel.findOneAndUpdate(
                     { username: data.receiver },
                     {
-                        $pull: { rooms: { id: roomId } },
+                        $set: {
+                            "rooms.$[elem].not_seen_count": 0,
+                            "rooms.$[elem].last_message.index": 0,
+                            "rooms.$[elem].last_message.seen": false,
+                            "rooms.$[elem].last_message.content": "",
+                            "rooms.$[elem].last_message.time": new Date(),
+                        },
                     },
                     {
+                        arrayFilters: [{ "elem.id": roomId }],
                         new: true,
                     }
                 ),
@@ -415,7 +418,9 @@ io.on("connection", (socket: Socket) => {
 
             socket.emit("menu", { user: newSender, success: true, message: "User found" });
 
-            socket.to(newReceiver.username).emit("menu", { user: newReceiver, success: true, message: "User found" });
+            socket
+                .to(newReceiver.username)
+                .emit("menu", { user: newReceiver, success: true, message: "User found" });
 
             socket.emit("profile", {
                 success: true,
@@ -426,10 +431,68 @@ io.on("connection", (socket: Socket) => {
                 room_id: roomId,
                 messages: [],
             });
-        } catch (e) {
-            console.log(e);
         }
-    });
+    );
+
+    socket.on(
+        "deleteChat",
+        async (data: { token: string; id: string; sender: string; receiver: string }) => {
+            const token = auth(data.token);
+            if (token === null) {
+                return;
+            }
+
+            try {
+                const room = await RoomModel.findOneAndDelete({
+                    participants: { $all: [data.sender, data.receiver] },
+                });
+
+                if (!room) return;
+
+                const roomId = room._id.toString();
+                const [newSender, newReceiver] = await Promise.all([
+                    UserModel.findOneAndUpdate(
+                        { username: data.sender },
+                        {
+                            $pull: { rooms: { id: roomId } },
+                        },
+                        {
+                            new: true,
+                        }
+                    ),
+                    UserModel.findOneAndUpdate(
+                        { username: data.receiver },
+                        {
+                            $pull: { rooms: { id: roomId } },
+                        },
+                        {
+                            new: true,
+                        }
+                    ),
+                ]);
+
+                if (!newReceiver || !newSender) return;
+
+                socket.emit("menu", { user: newSender, success: true, message: "User found" });
+
+                socket
+                    .to(newReceiver.username)
+                    .emit("menu", { user: newReceiver, success: true, message: "User found" });
+
+                socket.emit("profile", {
+                    success: true,
+                    message: "Messages found",
+                    new_messages_marker: null,
+                    username: newReceiver.username,
+                    bio: newReceiver.bio,
+                    room_id: roomId,
+                    messages: [],
+                });
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    );
 
     socket.on("disconnect", () => {
         console.log("A user disconnected");

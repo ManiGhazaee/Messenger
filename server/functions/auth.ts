@@ -1,16 +1,23 @@
 import jwt from "jsonwebtoken";
 require("dotenv").config();
 
-export function isAuthorized(token: string) {
+export function auth(token: string) {
     if (!token) {
-        return false;
+        return null;
     }
 
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!, (err, decoded) => {
-        if (err) {
-            console.log(err);
-            return false;
+    try {
+        const decoded: { username: string; id: string } = JSON.parse(
+            JSON.stringify(jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!))
+        );
+
+        if (typeof decoded === "object" && "username" in decoded && "id" in decoded) {
+            return decoded;
+        } else {
+            throw new Error("Invalid decoded token");
         }
-    });
-    return true;
+    } catch (e) {
+        console.log(e);
+        return null;
+    }
 }

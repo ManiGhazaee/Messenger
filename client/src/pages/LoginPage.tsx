@@ -9,10 +9,8 @@ const LoginPage = ({
     socket,
 }: {
     Data: {
-        token: string;
-        setTokenFunction: (string: string) => void;
-        id: string;
-        setIdFunction: (string: string) => void;
+        setToken: (string: string) => void;
+        setUsername: (string: string) => void;
     };
     socket: Socket | null;
 }) => {
@@ -24,22 +22,26 @@ const LoginPage = ({
 
     useEffect(() => {
         if (socket) {
-            socket.on("login", (data: string) => {
-                console.log(data);
-                const dataParsed: {
-                    token?: string;
-                    id?: string;
-                    message: string;
+            socket.on(
+                "login",
+                (data: {
+                    token: string;
+                    id: string;
+                    username: string;
                     success: boolean;
-                } = JSON.parse(data);
-                if (dataParsed.success === true && dataParsed.token && dataParsed.id) {
-                    Data.setTokenFunction(dataParsed.token);
-                    Data.setIdFunction(dataParsed.id);
-                    navigate("/messenger");
-                } else {
-                    setMessage(dataParsed.message);
+                    message: string;
+                }) => {
+                    console.log("login data", data);
+                    if (data.token && data.id) {
+                        Data.setToken(data.token);
+                        Data.setUsername(data.username);
+                        navigate("/messenger");
+                        window.location.reload();
+                    } else {
+                        setMessage(data.message);
+                    }
                 }
-            });
+            );
         }
     }, [socket]);
 
@@ -50,7 +52,7 @@ const LoginPage = ({
                 socket.emit("login", { username_or_email: usernameOrEmail, password });
             }
         } catch (error) {
-            console.error("Sign-up failed:", error);
+            console.error("login error", error);
         }
     };
     return (
