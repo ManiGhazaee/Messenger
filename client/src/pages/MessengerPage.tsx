@@ -269,7 +269,11 @@ const MessengerPage = ({
 
     return (
         <div className="h-screen">
-            <Setting settingState={settingState} setSettingState={setSettingState} />
+            <Setting
+                username={username}
+                settingState={settingState}
+                setSettingState={setSettingState}
+            />
             <Nav
                 searchState={searchState}
                 setSearchState={setSearchState}
@@ -390,7 +394,7 @@ const MessengerPage = ({
                         <div className="flex flex-row w-[calc(100%-10px)] h-[40px] absolute left-0 bottom-[5px] ml-[5px]">
                             <div className="flex-grow bg-zinc-900 border-zinc-800 border-[1px] h-full rounded-full pl-4 pr-11 ">
                                 <textarea
-                                    id="search-input"
+                                    id="message-input"
                                     className="resize-none placeholder:text-zinc-500 bg-zinc-900 text-[14px] outline-none py-[8px] h-full w-full"
                                     autoComplete="off"
                                     value={messageInput}
@@ -403,7 +407,7 @@ const MessengerPage = ({
                                     }}
                                 />
                                 <button
-                                    id="search-button"
+                                    id="message-button"
                                     className="text-blue-500 absolute top-0 right-[8px] bg-w-[40px] active:text-blue-300 duration-100 cursor-pointer rounded-full aspect-square h-full ml-[5px]"
                                     onClick={sendPrivateMessage}
                                 >

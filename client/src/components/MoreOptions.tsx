@@ -27,7 +27,7 @@ const MoreOptions = ({
                                     items.map((elem) => (
                                         <div
                                             style={elem.style}
-                                            className="text-[14px] w-[calc(100%-8px)] my-[4px] active:bg-zinc-400 active:text-black mx-auto px-2 py-1 text-text_2 cursor-pointer bg-black hover:bg-zinc-800 rounded-lg"
+                                            className="text-[14px] w-[calc(100%-8px)] my-[4px] active:bg-zinc-400 active:text-black mx-auto px-2 py-1 text-zinc-500 cursor-pointer bg-black hover:bg-zinc-800 rounded-lg"
                                             onClick={() => {
                                                 if (elem.params) {
                                                     elem.onClick(...elem.params);
