@@ -74,7 +74,7 @@ const SignupPage = ({
                     id="logo-cont"
                     className="inline-block relative text-[24px] left-1/2 -translate-x-1/2 font-bold mx-auto mt-[12px]"
                 >
-                    <span>Messanger</span>
+                    Messenger
                 </div>
             </Link>
             <div className="min-h-fit w-[300px] mx-auto text-[14px]">

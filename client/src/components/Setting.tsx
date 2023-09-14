@@ -1,7 +1,9 @@
-import React, { Dispatch, SetStateAction } from "react";
-import { Link } from "react-router-dom";
+import React, { Dispatch, SetStateAction, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import ConfirmModal from "./ConfirmModal";
+import { TOKEN_STORAGE_KEY } from "../App";
 
 const Setting = ({
     settingState,
@@ -12,9 +14,14 @@ const Setting = ({
     setSettingState: Dispatch<SetStateAction<boolean>>;
     username: string | null;
 }) => {
+    const [logoutConfirmModal, setLogoutConfirmModal] = useState<boolean>(false);
+    const navigate = useNavigate();
+
     const logoutOnClick = () => {
-        console.log("logout");
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        navigate("/login");
     };
+
     return (
         <>
             <div
@@ -56,7 +63,7 @@ const Setting = ({
                     Setting
                 </div>
                 <div
-                    onClick={logoutOnClick}
+                    onClick={() => setLogoutConfirmModal(true)}
                     className="w-[calc(100%-8px)] whitespace-nowrap font-semibold text-red-500 duration-200 cursor-pointer py-1 px-3 mx-auto my-[4px]  bg-black rounded-lg text-[18px] hover:bg-red-500 hover:text-black"
                 >
                     <LogoutRoundedIcon
@@ -64,6 +71,15 @@ const Setting = ({
                     />
                     Log out
                 </div>
+                <ConfirmModal
+                    display={logoutConfirmModal}
+                    displayFn={setLogoutConfirmModal}
+                    onOkFn={logoutOnClick}
+                    title="Log Out"
+                    message={`Are you sure you want to log out of ${username}?`}
+                    okText="Yes"
+                    cancelText="No"
+                />
             </div>
         </>
     );

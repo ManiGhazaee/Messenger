@@ -60,12 +60,9 @@ const LoginPage = ({
             <Link to={"/"}>
                 <div
                     id="logo-cont"
-                    className="inline-block relative text-[24px] left-1/2 -translate-x-1/2 font-bold italic mx-auto mt-[12px]"
+                    className="inline-block relative text-[24px] left-1/2 -translate-x-1/2 font-bold mx-auto mt-[12px]"
                 >
-                    <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600 px-[1px]">
-                        Fire
-                    </span>
-                    <span>Code</span>
+                    Messenger
                 </div>
             </Link>
             <div className="min-h-fit w-[300px] mx-auto text-[14px]">
@@ -75,7 +72,7 @@ const LoginPage = ({
                     </h2>
                     <div className="mb-4">
                         <input
-                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
+                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-blue-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-blue-500"
                             type="text"
                             placeholder="Username or Email"
                             value={usernameOrEmail}
@@ -85,7 +82,7 @@ const LoginPage = ({
                     </div>
                     <div className="mb-6">
                         <input
-                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-orange-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-orange-500"
+                            className="appearance-none border w-full py-2 px-3 placeholder:text-text_2 focus:placeholder:text-blue-500 bg-black rounded border-borders leading-tight focus:outline-none focus:border-blue-500"
                             type="password"
                             placeholder="Password"
                             value={password}
@@ -95,7 +92,7 @@ const LoginPage = ({
                     </div>
                     <div className="flex items-center justify-between">
                         <button
-                            className="bg-orange-500 hover:bg-red-600 text-black font-bold py-[6px] px-4 rounded focus:outline-none focus:shadow-outline w-full transition"
+                            className="bg-blue-500 hover:bg-blue-600 text-black font-bold py-[6px] px-4 rounded focus:outline-none focus:shadow-outline w-full transition"
                             type="button"
                             onClick={handleLogin}
                         >
@@ -112,7 +109,7 @@ const LoginPage = ({
                     </div>
                     <div className="flex items-center justify-between mt-[20px]">
                         <span className="text-text_2">Don't have an account? </span>
-                        <Link to="/signup" className="text-orange-500 hover:text-red-600">
+                        <Link to="/signup" className="text-blue-500 hover:text-blue-600">
                             Signup
                         </Link>
                     </div>

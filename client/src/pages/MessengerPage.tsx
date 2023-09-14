@@ -76,7 +76,11 @@ const MessengerPage = ({
             }
 
             if (data.new_messages_marker !== null) {
-                setNewMessagesMarker(data.new_messages_marker);
+                console.log("new_messages_marker", data.new_messages_marker);
+                setNewMessagesMarker((prev) => {
+                    prev = data.new_messages_marker;
+                    return prev;
+                });
             } else {
                 setNewMessagesMarker(null);
             }
@@ -268,7 +272,7 @@ const MessengerPage = ({
     };
 
     return (
-        <div className="h-screen">
+        <div className="h-screen overflow-hidden">
             <Setting
                 username={username}
                 settingState={settingState}
@@ -330,7 +334,7 @@ const MessengerPage = ({
                 okText="Yes"
                 cancelText="No"
             />
-            <div className="flex flex-col h-[calc(100%-62px)]">
+            <div className="flex flex-col h-[calc(100%-60px)] overflow-hidden">
                 <Search
                     searchState={searchState}
                     searchInput={searchInput}

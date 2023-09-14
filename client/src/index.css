@@ -283,7 +283,7 @@ html {
     opacity: 0;
 }
 
-@keyframes scaleOpacity  {
+@keyframes scaleOpacity {
     100% {
         scale: 1;
         opacity: 1;
@@ -321,5 +321,29 @@ html {
 @keyframes scaleAnimation {
     100% {
         scale: 1;
+    }
+}
+
+.unread_open {
+    height: 0px;
+    margin: 0px 0px;
+    animation: unreadOpen 300ms forwards;
+}
+@keyframes unreadOpen {
+    100% {
+        height: 24px;
+        margin: 4px 0px;
+    }
+}
+
+.unread_close {
+    height: 24px;
+    margin: 4px 0px;
+    animation: unreadClose 300ms forwards;
+}
+@keyframes unreadClose {
+    100% {
+        margin: 0px 0px;
+        height: 0px;
     }
 }

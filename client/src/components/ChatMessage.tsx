@@ -49,19 +49,30 @@ const ChatMessage = ({
                             style={{
                                 height: newMessagesMarkerDisplay ? "24px" : "0px",
                             }}
-                            className={` w-full duration-300 bg-cyan-400 text-black text-center`}
+                            className={` w-full duration-300 bg-zinc-900 my-[4px] text-black text-center`}
                         >
                             New Messages
                         </div>
                     )}
-                    <div id={message.index.toString()} className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right`} ref={ref}>
-                        <div className={`message relative w-fit px-3 bg-blue-700 rounded-2xl py-1 my-[2px] break-words`}>
+                    <div
+                        id={message.index.toString()}
+                        className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right`}
+                        ref={ref}
+                    >
+                        <div
+                            className={`message relative w-fit px-3 bg-blue-700 rounded-2xl py-1 my-[2px] break-words`}
+                        >
                             {message.content}
                             {
-                                <span className="message-time inline-block text-right ml-[8px] text-[10px] w-fit">{`${new Date(message.time)
+                                <span className="message-time inline-block text-right ml-[8px] text-[10px] w-fit">{`${new Date(
+                                    message.time
+                                )
                                     .getHours()
                                     .toString()
-                                    .padStart(2, "0")}:${new Date(message.time).getMinutes().toString().padStart(2, "0")}`}</span>
+                                    .padStart(2, "0")}:${new Date(message.time)
+                                    .getMinutes()
+                                    .toString()
+                                    .padStart(2, "0")}`}</span>
                             }
                             {message.seen ? (
                                 <span className="ml-[0px] inline-block w-[12px] text-right">
@@ -83,23 +94,32 @@ const ChatMessage = ({
                 <>
                     {newMessagesMarker !== null && newMessagesMarker === message.index && (
                         <div
-                            style={{
-                                opacity: newMessagesMarkerDisplay ? "1" : "0",
-                                height: newMessagesMarkerDisplay ? "24px" : "0px",
-                            }}
-                            className="w-full duration-300 bg-cyan-400 text-black text-center"
+                            className={` ${
+                                newMessagesMarkerDisplay ? "unread_open" : "unread_close"
+                            } w-full duration-300 bg-zinc-900 my-[4px] text-zinc-500 text-center overflow-hidden`}
                         >
-                            New Messages
+                            Unread messages
                         </div>
                     )}
-                    <div id={message.index.toString()} className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]`} ref={ref}>
-                        <div className={`message relative w-fit px-3 bg-zinc-900 border border-zinc-800 rounded-2xl py-1 my-[2px] break-words`}>
+                    <div
+                        id={message.index.toString()}
+                        className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]`}
+                        ref={ref}
+                    >
+                        <div
+                            className={`message relative w-fit px-3 bg-zinc-900 border border-zinc-800 rounded-2xl py-1 my-[2px] break-words`}
+                        >
                             {message.content}
                             {
-                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] text-zinc-500 w-fit">{`${new Date(message.time)
+                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] text-zinc-500 w-fit">{`${new Date(
+                                    message.time
+                                )
                                     .getHours()
                                     .toString()
-                                    .padStart(2, "0")}:${new Date(message.time).getMinutes().toString().padStart(2, "0")}`}</span>
+                                    .padStart(2, "0")}:${new Date(message.time)
+                                    .getMinutes()
+                                    .toString()
+                                    .padStart(2, "0")}`}</span>
                             }
                         </div>
                     </div>

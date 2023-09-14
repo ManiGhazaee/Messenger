@@ -48,23 +48,15 @@ const Chat = ({
 
     useEffect(() => {
         const chatScrollable = document.getElementById("chat-scrollable");
-        console.log("messageRef", messagesRef);
-        console.log("newMessagesMarker", newMessagesMarker);
-        console.log("readyForSeen", readyForSeen);
-        console.log("chatScrollable", chatScrollable);
+
         if (messagesRef.current && newMessagesMarker !== null && !readyForSeen && chatScrollable) {
-            console.log("1 executed");
             const children = messagesRef.current.children;
             if (children.length > 0) {
-                console.log("2 executed");
                 for (let i = 0; i < children.length; i++) {
-                    console.log("3 executed");
                     if (parseInt(children[i].id) === newMessagesMarker) {
-                        console.log("3 executed");
                         chatScrollable.scrollTo({
                             top: (children[i] as HTMLElement).offsetTop - 200,
                         });
-                        console.log("4 executed");
                         setReadyForSeen(() => true);
                     }
                 }
@@ -109,8 +101,8 @@ const Chat = ({
                     <div
                         className={`${
                             autoScrollInView
-                                ? "bottom-[40px] opacity-0"
-                                : "bottom-[50px] opacity-100"
+                                ? "bottom-[30px] opacity-0"
+                                : "bottom-[60px] opacity-100"
                         } text-white duration-300 text-[50px] rounded-full border border-zinc-800 bg-zinc-900 w-[50px] h-[50px] fixed right-[5px] z-[100] cursor-pointer`}
                         onClick={scrollToBottomOnClick}
                     >
