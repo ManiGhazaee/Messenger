@@ -2,6 +2,10 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { hoursAndMinutes } from "../ts/utils";
 import MessageOptions from "./MessageOptions";
+import ReplyRoundedIcon from "@mui/icons-material/ReplyRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
+import ShortcutRoundedIcon from "@mui/icons-material/ShortcutRounded";
 
 const ChatMessage = ({
     message,
@@ -84,18 +88,60 @@ const ChatMessage = ({
                         displayFn={setMessageMoreOptionsDisplay}
                         clickPoint={clickPoint}
                         items={[
-                            { text: "Replay", onClick: () => {} },
+                            {
+                                text: "Replay",
+                                onClick: () => {},
+                                icon: (
+                                    <ReplyRoundedIcon
+                                        style={{
+                                            marginRight: "9px",
+                                            top: "-2px",
+                                            position: "relative",
+                                        }}
+                                    />
+                                ),
+                            },
                             {
                                 text: "Copy",
                                 onClick: (index) => {
                                     console.log(chatIndex);
                                 },
+                                icon: (
+                                    <ContentCopyRoundedIcon
+                                        style={{
+                                            marginRight: "9px",
+                                            top: "-2px",
+                                            position: "relative",
+                                        }}
+                                    />
+                                ),
                                 params: [chatIndex],
                             },
-                            { text: "Forward", onClick: () => {} },
+                            {
+                                text: "Forward",
+                                onClick: () => {},
+                                icon: (
+                                    <ShortcutRoundedIcon
+                                        style={{
+                                            marginRight: "9px",
+                                            top: "-2px",
+                                            position: "relative",
+                                        }}
+                                    />
+                                ),
+                            },
                             {
                                 text: "Delete",
                                 onClick: deleteMessageOnClick,
+                                icon: (
+                                    <DeleteOutlineRoundedIcon
+                                        style={{
+                                            marginRight: "9px",
+                                            top: "-2px",
+                                            position: "relative",
+                                        }}
+                                    />
+                                ),
                                 params: [chatIndex, message],
                                 style: { color: "red" },
                             },

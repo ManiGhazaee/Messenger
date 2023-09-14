@@ -44,6 +44,7 @@ const MessageOptions = ({
                                             displayFn(false);
                                         }}
                                     >
+                                        {elem.icon}
                                         {elem.text}
                                     </div>
                                 ))}
