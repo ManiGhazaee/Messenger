@@ -1,14 +1,21 @@
 import { Dispatch, SetStateAction } from "react";
 import { TChat } from "../pages/MessengerPage";
 
-export function addMessage(selfUsername: string | null, setChatStateFn: Dispatch<SetStateAction<TChat>>, message: Message) {
+export function addMessage(
+    selfUsername: string | null,
+    setChatStateFn: Dispatch<SetStateAction<TChat>>,
+    message: Message
+) {
     if (!selfUsername) return;
 
     if (message.sender === selfUsername) {
         setChatStateFn((prev) => {
             let obj: TChat = { ...prev };
             if (message.receiver in obj) {
-                if (obj[message.receiver][obj[message.receiver]?.length - 1]?.index !== message.index) {
+                if (
+                    obj[message.receiver][obj[message.receiver]?.length - 1]?.index !==
+                    message.index
+                ) {
                     obj[message.receiver].push(message);
                 }
             } else {
@@ -33,7 +40,11 @@ export function addMessage(selfUsername: string | null, setChatStateFn: Dispatch
     }
 }
 
-export function setMessageStatusToSuccess(selfUsername: string | null, setChatStateFn: Dispatch<SetStateAction<TChat>>, message: Message) {
+export function setMessageStatusToSuccess(
+    selfUsername: string | null,
+    setChatStateFn: Dispatch<SetStateAction<TChat>>,
+    message: Message
+) {
     if (!selfUsername) return;
 
     if (message.sender === selfUsername) {
@@ -51,7 +62,12 @@ export function setMessageStatusToSuccess(selfUsername: string | null, setChatSt
     }
 }
 
-export function deleteMessagesFor(selfUsername: string | null, setChatStateFn: Dispatch<SetStateAction<TChat>>, sender: string, receiver: string) {
+export function deleteMessagesFor(
+    selfUsername: string | null,
+    setChatStateFn: Dispatch<SetStateAction<TChat>>,
+    sender: string,
+    receiver: string
+) {
     if (!selfUsername) return;
 
     if (sender === selfUsername) {
@@ -73,4 +89,11 @@ export function deleteMessagesFor(selfUsername: string | null, setChatStateFn: D
     } else {
         console.log("WTF?");
     }
+}
+
+export function hoursAndMinutes(time: Date | string): string {
+    return `${new Date(time).getHours().toString().padStart(2, "0")}:${new Date(time)
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`;
 }

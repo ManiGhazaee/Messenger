@@ -1,5 +1,7 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
+import { hoursAndMinutes } from "../ts/utils";
+import MessageOptions from "./MessageOptions";
 
 const ChatMessage = ({
     message,
@@ -10,6 +12,7 @@ const ChatMessage = ({
     readyForSeen,
     newMessagesMarker,
     setNewMessagesMarker,
+    deleteMessageOnClick,
 }: {
     message: Message;
     type: "sender" | "receiver";
@@ -19,8 +22,11 @@ const ChatMessage = ({
     readyForSeen: boolean;
     newMessagesMarker: number | null;
     setNewMessagesMarker: Dispatch<SetStateAction<number | null>>;
+    deleteMessageOnClick: (...args: any[]) => void;
 }) => {
     const [newMessagesMarkerDisplay, setNewMessagesMarkerDisplay] = useState<boolean>(true);
+    const [messageMoreOptionsDisplay, setMessageMoreOptionsDisplay] = useState<boolean>(false);
+    const [clickPoint, setClickPoint] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
     const { ref, inView } = useInView({
         threshold: 0,
@@ -40,39 +46,76 @@ const ChatMessage = ({
         return () => clearTimeout(timer);
     }, []);
 
+    const contextOnClick = (ev: React.MouseEvent<HTMLDivElement>) => {
+        const chatCont = document.getElementById("chat-scrollable");
+        if (!chatCont) return;
+        const chatWidth = chatCont.offsetWidth;
+        const chatHeight = chatCont.offsetHeight;
+
+        const rect = chatCont.getBoundingClientRect();
+
+        const chatOffsetTop = rect.top + window.scrollY;
+        const chatOffsetLeft = rect.left + window.scrollX;
+
+        let x = ev.clientX;
+        let y = ev.clientY;
+        if (ev.clientX > chatWidth / 2 + chatOffsetLeft) {
+            x = ev.clientX - 180;
+        }
+        if (ev.clientY > chatHeight / 2 + chatOffsetTop) {
+            y = ev.clientY - 4 * 30 - 8;
+        }
+        setMessageMoreOptionsDisplay((prev) => {
+            prev = true;
+            return prev;
+        });
+        setClickPoint((prev) => {
+            prev = { x, y };
+            return prev;
+        });
+    };
+
     return (
         <>
             {type === "sender" ? (
-                <>
-                    {newMessagesMarker !== null && newMessagesMarker === message.index && (
-                        <div
-                            style={{
-                                height: newMessagesMarkerDisplay ? "24px" : "0px",
-                            }}
-                            className={` w-full duration-300 bg-zinc-900 my-[4px] text-black text-center`}
-                        >
-                            New Messages
-                        </div>
-                    )}
+                <div className="relative">
+                    <MessageOptions
+                        display={messageMoreOptionsDisplay}
+                        displayFn={setMessageMoreOptionsDisplay}
+                        clickPoint={clickPoint}
+                        items={[
+                            { text: "Replay", onClick: () => {} },
+                            {
+                                text: "Copy",
+                                onClick: (index) => {
+                                    console.log(chatIndex);
+                                },
+                                params: [chatIndex],
+                            },
+                            { text: "Forward", onClick: () => {} },
+                            {
+                                text: "Delete",
+                                onClick: deleteMessageOnClick,
+                                params: [chatIndex, message],
+                                style: { color: "red" },
+                            },
+                        ]}
+                    />
                     <div
                         id={message.index.toString()}
+                        key={message.receiver + message.index.toString()}
                         className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right`}
                         ref={ref}
+                        onClick={(ev) => contextOnClick(ev)}
                     >
                         <div
                             className={`message relative w-fit px-3 bg-blue-700 rounded-2xl py-1 my-[2px] break-words`}
                         >
                             {message.content}
                             {
-                                <span className="message-time inline-block text-right ml-[8px] text-[10px] w-fit">{`${new Date(
+                                <span className="message-time inline-block text-right ml-[8px] text-[10px] w-fit">{`${hoursAndMinutes(
                                     message.time
-                                )
-                                    .getHours()
-                                    .toString()
-                                    .padStart(2, "0")}:${new Date(message.time)
-                                    .getMinutes()
-                                    .toString()
-                                    .padStart(2, "0")}`}</span>
+                                )}`}</span>
                             }
                             {message.seen ? (
                                 <span className="ml-[0px] inline-block w-[12px] text-right">
@@ -89,7 +132,7 @@ const ChatMessage = ({
                             )}
                         </div>
                     </div>
-                </>
+                </div>
             ) : (
                 <>
                     {newMessagesMarker !== null && newMessagesMarker === message.index && (
@@ -101,25 +144,43 @@ const ChatMessage = ({
                             Unread messages
                         </div>
                     )}
+                    <MessageOptions
+                        display={messageMoreOptionsDisplay}
+                        displayFn={setMessageMoreOptionsDisplay}
+                        clickPoint={clickPoint}
+                        items={[
+                            { text: "Replay", onClick: () => {} },
+                            {
+                                text: "Copy",
+                                onClick: (index) => {
+                                    console.log(chatIndex);
+                                },
+                                params: [chatIndex],
+                            },
+                            { text: "Forward", onClick: () => {} },
+                            {
+                                text: "Delete",
+                                onClick: deleteMessageOnClick,
+                                params: [chatIndex, message],
+                                style: { color: "red" },
+                            },
+                        ]}
+                    />
                     <div
                         id={message.index.toString()}
+                        key={message.sender + message.index.toString()}
                         className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]`}
                         ref={ref}
+                        onClick={(ev) => contextOnClick(ev)}
                     >
                         <div
                             className={`message relative w-fit px-3 bg-zinc-900 border border-zinc-800 rounded-2xl py-1 my-[2px] break-words`}
                         >
                             {message.content}
                             {
-                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] text-zinc-500 w-fit">{`${new Date(
+                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] text-zinc-500 w-fit">{`${hoursAndMinutes(
                                     message.time
-                                )
-                                    .getHours()
-                                    .toString()
-                                    .padStart(2, "0")}:${new Date(message.time)
-                                    .getMinutes()
-                                    .toString()
-                                    .padStart(2, "0")}`}</span>
+                                )}`}</span>
                             }
                         </div>
                     </div>

@@ -2,7 +2,6 @@ import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from "re
 import { useInView } from "react-intersection-observer";
 import ChatMessage from "./ChatMessage";
 import { Socket } from "socket.io-client";
-import ContextMenu from "./ContextMenu";
 import { TChat } from "../pages/MessengerPage";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
@@ -101,7 +100,7 @@ const Chat = ({
                     <div
                         className={`${
                             autoScrollInView
-                                ? "bottom-[30px] opacity-0"
+                                ? "bottom-[10px] opacity-0"
                                 : "bottom-[60px] opacity-100"
                         } text-white duration-300 text-[50px] rounded-full border border-zinc-800 bg-zinc-900 w-[50px] h-[50px] fixed right-[5px] z-[100] cursor-pointer`}
                         onClick={scrollToBottomOnClick}
@@ -123,25 +122,6 @@ const Chat = ({
                     {selfUsername &&
                         chat.map((message, index) =>
                             message.sender === selfUsername ? (
-                                // <ContextMenu
-                                //     items={[
-                                //         { text: "Replay", onClick: () => {} },
-                                //         {
-                                //             text: "Copy",
-                                //             onClick: (index) => {
-                                //                 console.log(chat[index]);
-                                //             },
-                                //             params: [index],
-                                //         },
-                                //         { text: "Forward", onClick: () => {} },
-                                //         {
-                                //             text: "Delete",
-                                //             onClick: deleteMessageOnClick,
-                                //             params: [index, message],
-                                //             style: { color: "red" },
-                                //         },
-                                //     ]}
-                                // >
                                 <ChatMessage
                                     message={message}
                                     type="sender"
@@ -151,6 +131,7 @@ const Chat = ({
                                     readyForSeen={readyForSeen}
                                     newMessagesMarker={newMessagesMarker}
                                     setNewMessagesMarker={setNewMessagesMarker}
+                                    deleteMessageOnClick={deleteMessageOnClick}
                                 />
                             ) : (
                                 <ChatMessage
@@ -162,6 +143,7 @@ const Chat = ({
                                     readyForSeen={readyForSeen}
                                     newMessagesMarker={newMessagesMarker}
                                     setNewMessagesMarker={setNewMessagesMarker}
+                                    deleteMessageOnClick={deleteMessageOnClick}
                                 />
                             )
                         )}
