@@ -75,20 +75,17 @@ const Chat = ({
 
     const deleteMessageOnClick = (index: number, message: Message) => {
         if (!token) return;
-        const isSelfSender = chat[index].sender === selfUsername;
+        const userInChat = chat[index].sender === selfUsername ? message.receiver : message.sender;
 
         socket.emit("deleteMessage", { token, message });
+
         setChat((prev) => {
             let obj = { ...prev };
-            if (isSelfSender) {
-                if (obj[message.receiver][index]) {
-                    delete obj[message.receiver][index];
-                }
-            } else {
-                if (obj[message.sender][index]) {
-                    delete obj[message.sender][index];
-                }
+
+            if (obj[userInChat][index]) {
+                delete obj[userInChat][index];
             }
+
             return obj;
         });
     };
@@ -99,9 +96,7 @@ const Chat = ({
                 {
                     <div
                         className={`${
-                            autoScrollInView
-                                ? "bottom-[10px] opacity-0"
-                                : "bottom-[60px] opacity-100"
+                            autoScrollInView ? "bottom-[5px] opacity-0" : "bottom-[60px] opacity-100"
                         } text-white duration-300 text-[50px] rounded-full border border-zinc-800 bg-zinc-900 w-[50px] h-[50px] fixed right-[5px] z-[100] cursor-pointer`}
                         onClick={scrollToBottomOnClick}
                     >
@@ -149,11 +144,7 @@ const Chat = ({
                         )}
                 </div>
 
-                <p
-                    ref={autoScrollRef}
-                    id="auto-scroll"
-                    className="w-full z-[-10] absolute bottom-0 h-[10px]"
-                ></p>
+                <p ref={autoScrollRef} id="auto-scroll" className="w-full z-[-10] absolute bottom-0 h-[10px]"></p>
             </div>
         </>
     );

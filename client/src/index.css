@@ -347,3 +347,7 @@ html {
         height: 0px;
     }
 }
+
+.background_color_duration_300 {
+    transition: background-color 300ms;
+}

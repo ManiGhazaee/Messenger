@@ -44,6 +44,12 @@ function App() {
     });
 
     useEffect(() => {
+        if (!token) {
+            navigate("/login");
+        }
+    }, []);
+
+    useEffect(() => {
         if (socket && token) {
             socket.emit("join", { token });
             socket.emit("menu", { token });
@@ -54,9 +60,7 @@ function App() {
         <Routes>
             <Route
                 path="/messenger"
-                element={
-                    <MessengerPage socket={socket} menu={menu} token={token} username={username} />
-                }
+                element={<MessengerPage socket={socket} menu={menu} token={token} username={username} />}
             />
             <Route
                 path="/signup"

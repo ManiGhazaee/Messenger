@@ -1,5 +1,6 @@
 import React from "react";
 import Loading from "./Loading";
+import { hoursAndMinutes } from "../ts/utils";
 
 const Menu = ({
     menu,
@@ -10,7 +11,7 @@ const Menu = ({
     state: "chat" | "menu";
     userOnClick: (username: string) => void;
 }) => {
-    console.log(menu);
+    console.log("menu", menu);
     return (
         <div
             id="menu"
@@ -36,15 +37,9 @@ const Menu = ({
                             </div>
 
                             <div className="ml-[0px] h-[20px] absolute bottom-[8px] text-zinc-500 group-hover:text-black duration-200 right-[8px] inline-block w-[72px] text-right">
-                                <div className="inline-block text-right mr-[8px] text-[12px] relative top-[-1px] w-fit">{`${new Date(
-                                    elem.last_message.time
-                                )
-                                    .getHours()
-                                    .toString()
-                                    .padStart(2, "0")}:${new Date(elem.last_message.time)
-                                    .getMinutes()
-                                    .toString()
-                                    .padStart(2, "0")}`}</div>
+                                <div className="inline-block text-right mr-[8px] text-[12px] relative top-[-1px] w-fit">
+                                    {hoursAndMinutes(elem.last_message.time)}
+                                </div>
 
                                 {elem.username === elem.last_message.receiver &&
                                     (elem.last_message.seen ? (
@@ -62,12 +57,16 @@ const Menu = ({
                         </div>
                     </div>
                 ))
-            ) : (
+            ) : menu === null ? (
                 <div
                     key="menu-loading"
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale_opacity_anim_300 px-1 py-1 bg-zinc-800 rounded-2xl text-[14px]"
                 >
                     <Loading color="white" />
+                </div>
+            ) : (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1 bg-zinc-900 rounded-2xl text-[14px]">
+                    {"No users found"}
                 </div>
             )}
         </div>

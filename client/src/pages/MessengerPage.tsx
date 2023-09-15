@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import useSocket from "../components/useSocket";
 import { addMessage, deleteMessagesFor, setMessageStatusToSuccess } from "../ts/utils";
@@ -13,6 +13,7 @@ import Menu from "../components/Menu";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import RestoreRoundedIcon from "@mui/icons-material/RestoreRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import { useNavigate } from "react-router-dom";
 
 export type TChat = {
     [key: string]: Message[];
@@ -45,8 +46,13 @@ const MessengerPage = ({
     const [chatMoreModalDisplay, setChatMoreModalDisplay] = useState<boolean>(false);
     const [clearHistoryConfirmModal, setClearHistoryConfirmModal] = useState<boolean>(false);
     const [deleteChatConfirmModal, setDeleteChatConfirmModal] = useState<boolean>(false);
+    const navigate = useNavigate();
 
-    console.log(chat);
+    useEffect(() => {
+        if (!token) {
+            navigate("/login");
+        }
+    }, []);
 
     useSocket(socket, "search", (data: SearchResult) => {
         setSearchResult(data);
@@ -85,23 +91,14 @@ const MessengerPage = ({
                 setNewMessagesMarker(null);
             }
 
-            if (
-                (!("messages" in data) || data.messages.length === 0) &&
-                username &&
-                currentRoomWith
-            ) {
+            if ((!("messages" in data) || data.messages.length === 0) && username && currentRoomWith) {
                 deleteMessagesFor(username, setChat, username, currentRoomWith);
                 return;
             }
 
             if ("messages" in data && data.messages && data.messages.length) {
                 setProfileResponseMessage(null);
-                deleteMessagesFor(
-                    username,
-                    setChat,
-                    data.messages[0].sender,
-                    data.messages[0].receiver
-                );
+                deleteMessagesFor(username, setChat, data.messages[0].sender, data.messages[0].receiver);
                 for (let i = data.messages.length - 1; i >= 0; i--) {
                     addMessage(username, setChat, data.messages[i]);
                 }
@@ -142,8 +139,7 @@ const MessengerPage = ({
     });
 
     useSocket(socket, "deleteMessage", (data: { message: Message }) => {
-        const chattingWith =
-            data.message.sender === username ? data.message.receiver : data.message.sender;
+        const chattingWith = data.message.sender === username ? data.message.receiver : data.message.sender;
         setChat((prev) => {
             let obj = { ...prev };
             for (let i = 0; i < obj[chattingWith].length; i++) {
@@ -181,9 +177,7 @@ const MessengerPage = ({
         setChat((prev) => {
             let obj: TChat = { ...prev };
             if (message.receiver in obj) {
-                if (
-                    obj[message.receiver][obj[message.receiver].length - 1].index !== message.index
-                ) {
+                if (obj[message.receiver][obj[message.receiver].length - 1].index !== message.index) {
                     obj[message.receiver].push(message);
                 }
             } else {
@@ -273,11 +267,7 @@ const MessengerPage = ({
 
     return (
         <div className="h-screen overflow-hidden">
-            <Setting
-                username={username}
-                settingState={settingState}
-                setSettingState={setSettingState}
-            />
+            <Setting username={username} settingState={settingState} setSettingState={setSettingState} />
             <Nav
                 searchState={searchState}
                 setSearchState={setSearchState}
@@ -293,11 +283,7 @@ const MessengerPage = ({
                         onClick: () => {
                             setClearHistoryConfirmModal(true);
                         },
-                        icon: (
-                            <RestoreRoundedIcon
-                                style={{ marginRight: "10px", top: "-1px", position: "relative" }}
-                            />
-                        ),
+                        icon: <RestoreRoundedIcon style={{ marginRight: "10px", top: "-1px", position: "relative" }} />,
                     },
                     {
                         text: "Delete Chat",
@@ -345,9 +331,7 @@ const MessengerPage = ({
                 />
                 <div
                     id="main"
-                    className={`flex flex-row ${
-                        searchState ? "h-0" : "h-full"
-                    } overflow-hidden duration-300`}
+                    className={`flex flex-row ${searchState ? "h-0" : "h-full"} overflow-hidden duration-300`}
                 >
                     <Menu menu={menu} state={state} userOnClick={userOnClick} />
                     <div
@@ -367,9 +351,7 @@ const MessengerPage = ({
                                 id="chat-scrollable"
                                 className={`h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse`}
                             >
-                                {currentRoomWith in chat &&
-                                chat[currentRoomWith].length !== 0 &&
-                                socket ? (
+                                {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && socket ? (
                                     <Chat
                                         token={token}
                                         chat={chat[currentRoomWith]}

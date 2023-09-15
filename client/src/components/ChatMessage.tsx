@@ -7,6 +7,8 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import ShortcutRoundedIcon from "@mui/icons-material/ShortcutRounded";
 
+const numberOfChatMoreOptionsItems = 4;
+
 const ChatMessage = ({
     message,
     type,
@@ -67,7 +69,7 @@ const ChatMessage = ({
             x = ev.clientX - 180;
         }
         if (ev.clientY > chatHeight / 2 + chatOffsetTop) {
-            y = ev.clientY - 4 * 30 - 8;
+            y = ev.clientY - numberOfChatMoreOptionsItems * 30 - 8;
         }
         setMessageMoreOptionsDisplay((prev) => {
             prev = true;
@@ -155,11 +157,13 @@ const ChatMessage = ({
                         onClick={(ev) => contextOnClick(ev)}
                     >
                         <div
-                            className={`message relative w-fit px-3 bg-blue-700 rounded-2xl py-1 my-[2px] break-words`}
+                            className={`message relative w-fit px-3 ${
+                                messageMoreOptionsDisplay ? "bg-blue-400" : "bg-blue-700"
+                            }  rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
                         >
                             {message.content}
                             {
-                                <span className="message-time inline-block text-right ml-[8px] text-[10px] w-fit">{`${hoursAndMinutes(
+                                <span className="message-time cursor-default inline-block text-right ml-[8px] text-[10px] w-fit">{`${hoursAndMinutes(
                                     message.time
                                 )}`}</span>
                             }
@@ -195,18 +199,60 @@ const ChatMessage = ({
                         displayFn={setMessageMoreOptionsDisplay}
                         clickPoint={clickPoint}
                         items={[
-                            { text: "Replay", onClick: () => {} },
+                            {
+                                text: "Replay",
+                                onClick: () => {},
+                                icon: (
+                                    <ReplyRoundedIcon
+                                        style={{
+                                            marginRight: "9px",
+                                            top: "-2px",
+                                            position: "relative",
+                                        }}
+                                    />
+                                ),
+                            },
                             {
                                 text: "Copy",
                                 onClick: (index) => {
                                     console.log(chatIndex);
                                 },
+                                icon: (
+                                    <ContentCopyRoundedIcon
+                                        style={{
+                                            marginRight: "9px",
+                                            top: "-2px",
+                                            position: "relative",
+                                        }}
+                                    />
+                                ),
                                 params: [chatIndex],
                             },
-                            { text: "Forward", onClick: () => {} },
+                            {
+                                text: "Forward",
+                                onClick: () => {},
+                                icon: (
+                                    <ShortcutRoundedIcon
+                                        style={{
+                                            marginRight: "9px",
+                                            top: "-2px",
+                                            position: "relative",
+                                        }}
+                                    />
+                                ),
+                            },
                             {
                                 text: "Delete",
                                 onClick: deleteMessageOnClick,
+                                icon: (
+                                    <DeleteOutlineRoundedIcon
+                                        style={{
+                                            marginRight: "9px",
+                                            top: "-2px",
+                                            position: "relative",
+                                        }}
+                                    />
+                                ),
                                 params: [chatIndex, message],
                                 style: { color: "red" },
                             },
@@ -220,11 +266,13 @@ const ChatMessage = ({
                         onClick={(ev) => contextOnClick(ev)}
                     >
                         <div
-                            className={`message relative w-fit px-3 bg-zinc-900 border border-zinc-800 rounded-2xl py-1 my-[2px] break-words`}
+                            className={`message relative w-fit px-3 ${
+                                messageMoreOptionsDisplay ? "bg-zinc-800" : "bg-zinc-900"
+                            }  border border-zinc-800 rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
                         >
                             {message.content}
                             {
-                                <span className=" message-time inline-block text-right ml-[8px] text-[10px] text-zinc-500 w-fit">{`${hoursAndMinutes(
+                                <span className="message-time cursor-default inline-block text-right ml-[8px] text-[10px] text-zinc-500 w-fit">{`${hoursAndMinutes(
                                     message.time
                                 )}`}</span>
                             }
