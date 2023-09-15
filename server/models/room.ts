@@ -7,21 +7,30 @@ export interface DRoom extends Document {
     message_count: number;
 }
 
+export const reply = {
+    index: Number,
+    sender: String,
+    receiver: String,
+    content: String,
+    time: Date,
+};
+
+export const message = {
+    index: Number,
+    reply: reply,
+    sender: String,
+    receiver: String,
+    seen: Boolean,
+    content: String,
+    time: Date,
+};
+
 const roomSchema = new mongoose.Schema<DRoom>({
     participants: {
         type: [String],
     },
     messages: {
-        type: [
-            {
-                index: Number,
-                sender: String,
-                receiver: String,
-                content: String,
-                seen: Boolean,
-                time: Date,
-            },
-        ],
+        type: [message],
     },
     max_users: {
         type: Number,

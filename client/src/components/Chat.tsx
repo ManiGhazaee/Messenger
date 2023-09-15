@@ -14,6 +14,8 @@ const Chat = ({
     onSeenFn,
     newMessagesMarker,
     setNewMessagesMarker,
+    reply,
+    setReply,
 }: {
     token: string | null;
     socket: Socket;
@@ -23,6 +25,8 @@ const Chat = ({
     onSeenFn: (index: number, message: Message) => void;
     newMessagesMarker: number | null;
     setNewMessagesMarker: Dispatch<SetStateAction<number | null>>;
+    reply: MessageReply | null;
+    setReply: Dispatch<SetStateAction<MessageReply | null>>;
 }) => {
     const chatContRef = useRef<HTMLDivElement>(null);
     const messagesRef = useRef<HTMLDivElement>(null);
@@ -90,29 +94,42 @@ const Chat = ({
         });
     };
 
+    const replyOnClick = (index: number, message: Message) => {
+        setReply({
+            index: index,
+            sender: message.sender,
+            receiver: message.receiver,
+            content: message.content,
+            time: message.time,
+        });
+    };
+
     return (
         <>
             <div id="chat-cont" className="text-[14px]" ref={chatContRef}>
-                {
-                    <div
-                        className={`${
-                            autoScrollInView ? "bottom-[5px] opacity-0" : "bottom-[60px] opacity-100"
-                        } text-white duration-300 text-[50px] rounded-full border border-zinc-800 bg-zinc-900 w-[50px] h-[50px] fixed right-[5px] z-[100] cursor-pointer`}
-                        onClick={scrollToBottomOnClick}
-                    >
-                        <ArrowDownwardIcon
-                            className=" text-blue-500"
-                            style={{
-                                position: "absolute",
-                                top: "50%",
-                                left: "50%",
-                                transform: "translate(-50%, -50%)",
-                                fontSize: "30px",
-                            }}
-                        />
-                    </div>
-                }
-
+                <div
+                    className={`${
+                        autoScrollInView
+                            ? reply !== null
+                                ? "bottom-[45px] opacity-0"
+                                : "bottom-[5px] opacity-0"
+                            : reply !== null
+                            ? "bottom-[100px] opacity-100"
+                            : "bottom-[60px] opacity-100"
+                    } text-white duration-300 text-[50px] rounded-full border border-zinc-800 bg-zinc-900 w-[50px] h-[50px] fixed right-[5px] z-[100] cursor-pointer`}
+                    onClick={scrollToBottomOnClick}
+                >
+                    <ArrowDownwardIcon
+                        className=" text-blue-500"
+                        style={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            fontSize: "30px",
+                        }}
+                    />
+                </div>
                 <div ref={messagesRef}>
                     {selfUsername &&
                         chat.map((message, index) =>
@@ -127,6 +144,7 @@ const Chat = ({
                                     newMessagesMarker={newMessagesMarker}
                                     setNewMessagesMarker={setNewMessagesMarker}
                                     deleteMessageOnClick={deleteMessageOnClick}
+                                    replyOnClick={replyOnClick}
                                 />
                             ) : (
                                 <ChatMessage
@@ -139,12 +157,20 @@ const Chat = ({
                                     newMessagesMarker={newMessagesMarker}
                                     setNewMessagesMarker={setNewMessagesMarker}
                                     deleteMessageOnClick={deleteMessageOnClick}
+                                    replyOnClick={replyOnClick}
                                 />
                             )
                         )}
                 </div>
 
                 <p ref={autoScrollRef} id="auto-scroll" className="w-full z-[-10] absolute bottom-0 h-[10px]"></p>
+                <div
+                    style={{
+                        width: "100%",
+                        height: reply !== null ? "40px" : "0px",
+                    }}
+                    className="duration-200"
+                ></div>
             </div>
         </>
     );

@@ -12,6 +12,15 @@ type Message = {
     seen: boolean;
     content: string;
     time: Date;
+    reply?: MessageReply;
+};
+
+type MessageReply = {
+    index: number;
+    sender: string;
+    receiver: string;
+    content: string;
+    time: Date;
 };
 
 type User = {

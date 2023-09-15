@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 import useSocket from "../components/useSocket";
 import { addMessage, deleteMessagesFor, setMessageStatusToSuccess } from "../ts/utils";
 import Chat from "../components/Chat";
@@ -13,7 +14,8 @@ import Menu from "../components/Menu";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import RestoreRoundedIcon from "@mui/icons-material/RestoreRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
-import { useNavigate } from "react-router-dom";
+import ReplyRoundedIcon from "@mui/icons-material/ReplyRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 export type TChat = {
     [key: string]: Message[];
@@ -46,6 +48,7 @@ const MessengerPage = ({
     const [chatMoreModalDisplay, setChatMoreModalDisplay] = useState<boolean>(false);
     const [clearHistoryConfirmModal, setClearHistoryConfirmModal] = useState<boolean>(false);
     const [deleteChatConfirmModal, setDeleteChatConfirmModal] = useState<boolean>(false);
+    const [reply, setReply] = useState<MessageReply | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -57,6 +60,7 @@ const MessengerPage = ({
     useSocket(socket, "search", (data: SearchResult) => {
         setSearchResult(data);
     });
+
     useSocket(
         socket,
         "profile",
@@ -105,6 +109,7 @@ const MessengerPage = ({
             }
         }
     );
+
     useSocket(socket, "message", (data: { message: Message; success: boolean }) => {
         if (data.message.sender === username) {
             setMessageStatusToSuccess(username, setChat, data.message);
@@ -112,6 +117,7 @@ const MessengerPage = ({
             addMessage(username, setChat, data.message);
         }
     });
+
     useSocket(socket, "seen", (data: { message: Message }) => {
         console.log("seen data", data);
         setChat((prev) => {
@@ -174,6 +180,11 @@ const MessengerPage = ({
             time: new Date(),
         };
 
+        if (reply !== null) {
+            message.reply = reply;
+            setReply(null);
+        }
+
         setChat((prev) => {
             let obj: TChat = { ...prev };
             if (message.receiver in obj) {
@@ -190,6 +201,7 @@ const MessengerPage = ({
             socket.emit("message", {
                 token,
                 index: messageIndex,
+                reply: message.reply,
                 sender: username,
                 receiver: currentRoomWith,
                 content: messageInput,
@@ -210,6 +222,7 @@ const MessengerPage = ({
         setCurrentRoomWith(() => username);
         setState("chat");
         setSearchState(false);
+        setReply(null);
         setChatUsername(username);
         if (socket) {
             socket.emit("profile", { token, username });
@@ -223,6 +236,7 @@ const MessengerPage = ({
         }
         setChatUsername(null);
         setProfileResponseMessage(null);
+        setReply(null);
     };
 
     const onSeen = (index: number, message: Message) => {
@@ -252,12 +266,14 @@ const MessengerPage = ({
         if (state !== "chat") return;
         setChatMoreModalDisplay(!chatMoreModalDisplay);
     };
+
     const clearHistory = () => {
         setClearHistoryConfirmModal(false);
         if (socket) {
             socket.emit("clearHistory", { token, sender: username, receiver: currentRoomWith });
         }
     };
+
     const deleteChat = () => {
         setDeleteChatConfirmModal(false);
         if (socket) {
@@ -361,6 +377,8 @@ const MessengerPage = ({
                                         onSeenFn={onSeen}
                                         newMessagesMarker={newMessagesMarker}
                                         setNewMessagesMarker={setNewMessagesMarker}
+                                        reply={reply}
+                                        setReply={setReply}
                                     />
                                 ) : (
                                     <>
@@ -377,6 +395,47 @@ const MessengerPage = ({
                                 )}
                             </div>
                         )}
+
+                        <div
+                            style={{
+                                height: reply !== null ? "60px" : "0px",
+                            }}
+                            className="flex flex-row duration-200 overflow-hidden border border-zinc-800 bg-zinc-900 w-[calc(100%-10px)] h-[60px] rounded-t-[20px] absolute left-0 bottom-[25px] ml-[5px] py-[8px] px-[16px] text-[14px]"
+                        >
+                            <ReplyRoundedIcon
+                                className="text-blue-500"
+                                style={{
+                                    marginRight: "9px",
+                                    top: "-2px",
+                                    position: "relative",
+                                    fontSize: "24px",
+                                }}
+                            />
+                            <span className="text-blue-400 mr-2">
+                                {reply?.sender}
+                                {":"}
+                            </span>
+
+                            <span className="">
+                                {reply?.content && reply?.content.length > 30
+                                    ? reply?.content.slice(0, 30) + "..."
+                                    : reply?.content}
+                            </span>
+                            <div
+                                onClick={() => setReply(null)}
+                                className="absolute text-zinc-500 right-[3px] cursor-pointer hover:text-zinc-200 duration-200"
+                            >
+                                <CloseRoundedIcon
+                                    style={{
+                                        marginRight: "9px",
+                                        top: "-2px",
+                                        position: "relative",
+                                        fontSize: "24px",
+                                    }}
+                                />
+                            </div>
+                        </div>
+
                         <div className="flex flex-row w-[calc(100%-10px)] h-[40px] absolute left-0 bottom-[5px] ml-[5px]">
                             <div className="flex-grow bg-zinc-900 border-zinc-800 border-[1px] h-full rounded-full pl-4 pr-11 ">
                                 <textarea

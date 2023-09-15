@@ -1,4 +1,5 @@
 import mongoose, { Document } from "mongoose";
+import { message } from "./room";
 
 export interface DUser extends Document {
     username: string;
@@ -31,14 +32,7 @@ const userSchema = new mongoose.Schema<DUser>({
                 id: String,
                 username: String,
                 with: String,
-                last_message: {
-                    index: Number,
-                    sender: String,
-                    receiver: String,
-                    seen: Boolean,
-                    content: String,
-                    time: Date,
-                },
+                last_message: message,
                 not_seen_count: Number,
                 is_muted: Boolean,
             },

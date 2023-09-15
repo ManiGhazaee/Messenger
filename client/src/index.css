@@ -351,3 +351,7 @@ html {
 .background_color_duration_300 {
     transition: background-color 300ms;
 }
+
+.show_message {
+    background-color: rgb(32, 32, 32);
+}

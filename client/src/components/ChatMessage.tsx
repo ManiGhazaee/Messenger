@@ -19,6 +19,7 @@ const ChatMessage = ({
     newMessagesMarker,
     setNewMessagesMarker,
     deleteMessageOnClick,
+    replyOnClick,
 }: {
     message: Message;
     type: "sender" | "receiver";
@@ -29,6 +30,7 @@ const ChatMessage = ({
     newMessagesMarker: number | null;
     setNewMessagesMarker: Dispatch<SetStateAction<number | null>>;
     deleteMessageOnClick: (...args: any[]) => void;
+    replyOnClick: (...args: any[]) => void;
 }) => {
     const [newMessagesMarkerDisplay, setNewMessagesMarkerDisplay] = useState<boolean>(true);
     const [messageMoreOptionsDisplay, setMessageMoreOptionsDisplay] = useState<boolean>(false);
@@ -69,7 +71,7 @@ const ChatMessage = ({
             x = ev.clientX - 180;
         }
         if (ev.clientY > chatHeight / 2 + chatOffsetTop) {
-            y = ev.clientY - numberOfChatMoreOptionsItems * 30 - 8;
+            y = ev.clientY - numberOfChatMoreOptionsItems * 38 - 8;
         }
         setMessageMoreOptionsDisplay((prev) => {
             prev = true;
@@ -79,6 +81,25 @@ const ChatMessage = ({
             prev = { x, y };
             return prev;
         });
+    };
+
+    const scrollToReplyTarget = (index: number) => {
+        const replyTarget = document.getElementById(index.toString());
+        const chatCont = document.getElementById("chat-scrollable");
+
+        replyTarget?.classList.add("bg-zinc-900");
+
+        setTimeout(() => {
+            replyTarget?.classList.remove("bg-zinc-900");
+        }, 3000);
+
+        if (replyTarget && chatCont) {
+            replyTarget.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+                inline: "nearest",
+            });
+        }
     };
 
     return (
@@ -92,7 +113,8 @@ const ChatMessage = ({
                         items={[
                             {
                                 text: "Replay",
-                                onClick: () => {},
+                                onClick: replyOnClick,
+                                params: [chatIndex, message],
                                 icon: (
                                     <ReplyRoundedIcon
                                         style={{
@@ -161,6 +183,25 @@ const ChatMessage = ({
                                 messageMoreOptionsDisplay ? "bg-blue-400" : "bg-blue-700"
                             }  rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
                         >
+                            {message.reply && (
+                                <div
+                                    className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] duration-0 z-[180] pl-0 rounded-xl flex flex-row text-left hover:bg-blue-800 cursor-pointer "
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        scrollToReplyTarget(message.reply?.index || Infinity);
+                                    }}
+                                >
+                                    <div className="w-[3px] my-[4px] ml-[8px] bg-blue-300 rounded-full mr-2"></div>
+                                    <div className="flex flex-col">
+                                        <div className="text-blue-300">{message.reply.sender}</div>
+                                        <div>
+                                            {message.reply.content.length > 30
+                                                ? message.reply.content.slice(0, 30) + "..."
+                                                : message.reply.content}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {message.content}
                             {
                                 <span className="message-time cursor-default inline-block text-right ml-[8px] text-[10px] w-fit">{`${hoursAndMinutes(
@@ -201,7 +242,8 @@ const ChatMessage = ({
                         items={[
                             {
                                 text: "Replay",
-                                onClick: () => {},
+                                onClick: replyOnClick,
+                                params: [chatIndex, message],
                                 icon: (
                                     <ReplyRoundedIcon
                                         style={{
@@ -270,6 +312,16 @@ const ChatMessage = ({
                                 messageMoreOptionsDisplay ? "bg-zinc-800" : "bg-zinc-900"
                             }  border border-zinc-800 rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
                         >
+                            {message.reply && (
+                                <div className="py-1 px-3">
+                                    <div className=""></div>
+                                    <div>
+                                        {message.reply.content.length > 30
+                                            ? message.reply.content.slice(0, 30)
+                                            : message.reply.content}
+                                    </div>
+                                </div>
+                            )}
                             {message.content}
                             {
                                 <span className="message-time cursor-default inline-block text-right ml-[8px] text-[10px] text-zinc-500 w-fit">{`${hoursAndMinutes(
