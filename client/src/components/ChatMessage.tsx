@@ -84,8 +84,11 @@ const ChatMessage = ({
     };
 
     const scrollToReplyTarget = (index: number) => {
+        console.log("index", index);
         const replyTarget = document.getElementById(index.toString());
         const chatCont = document.getElementById("chat-scrollable");
+        console.log("replyTarget", replyTarget);
+        console.log("chatCont", chatCont);
 
         replyTarget?.classList.add("bg-zinc-900");
 
@@ -188,7 +191,12 @@ const ChatMessage = ({
                                     className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] duration-0 z-[180] pl-0 rounded-xl flex flex-row text-left hover:bg-blue-800 cursor-pointer "
                                     onClick={(ev) => {
                                         ev.stopPropagation();
-                                        scrollToReplyTarget(message.reply?.index || Infinity);
+                                        if (
+                                            message.reply &&
+                                            "index" in message.reply &&
+                                            typeof message.reply.index === "number"
+                                        )
+                                            scrollToReplyTarget(message.reply.index);
                                     }}
                                 >
                                     <div className="w-[3px] my-[4px] ml-[8px] bg-blue-300 rounded-full mr-2"></div>
@@ -313,12 +321,26 @@ const ChatMessage = ({
                             }  border border-zinc-800 rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
                         >
                             {message.reply && (
-                                <div className="py-1 px-3">
-                                    <div className=""></div>
-                                    <div>
-                                        {message.reply.content.length > 30
-                                            ? message.reply.content.slice(0, 30)
-                                            : message.reply.content}
+                                <div
+                                    className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] duration-0 z-[180] pl-0 rounded-xl flex flex-row text-left hover:bg-zinc-800 cursor-pointer "
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        if (
+                                            message.reply &&
+                                            "index" in message.reply &&
+                                            typeof message.reply.index === "number"
+                                        )
+                                            scrollToReplyTarget(message.reply.index);
+                                    }}
+                                >
+                                    <div className="w-[3px] my-[4px] ml-[8px] bg-blue-300 rounded-full mr-2"></div>
+                                    <div className="flex flex-col">
+                                        <div className="text-blue-300">{message.reply.sender}</div>
+                                        <div>
+                                            {message.reply.content.length > 30
+                                                ? message.reply.content.slice(0, 30) + "..."
+                                                : message.reply.content}
+                                        </div>
                                     </div>
                                 </div>
                             )}

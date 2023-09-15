@@ -102,6 +102,10 @@ const Chat = ({
             content: message.content,
             time: message.time,
         });
+        const messageInput = document.getElementById("message-input");
+        if (messageInput) {
+            messageInput.focus();
+        }
     };
 
     return (

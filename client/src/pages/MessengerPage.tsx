@@ -227,6 +227,11 @@ const MessengerPage = ({
         if (socket) {
             socket.emit("profile", { token, username });
         }
+
+        const messageInput = document.getElementById("message-input");
+        if (messageInput) {
+            messageInput.focus();
+        }
     };
 
     const moreOnClick = () => {
