@@ -365,3 +365,11 @@ html {
         opacity: 1;
     }
 }
+
+.button_shadow {
+    box-shadow: 0px 0px 400px 42px #3b83f6;
+}
+
+.button_shadow_hover {
+    box-shadow: 0px 0px 0px 0px #00000000;
+}
