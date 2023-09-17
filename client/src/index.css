@@ -355,3 +355,13 @@ html {
 .show_message {
     background-color: rgb(32, 32, 32);
 }
+
+.fade_in_anim {
+    opacity: 0;
+    animation: fadeInAnimation 500ms forwards;
+}
+@keyframes fadeInAnimation {
+    100% {
+        opacity: 1;
+    }
+}

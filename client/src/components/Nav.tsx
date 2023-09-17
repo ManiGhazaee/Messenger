@@ -4,6 +4,7 @@ import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRound
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import { ChatState } from "./MessageOptions";
 
 const Nav = ({
     state,
@@ -13,7 +14,7 @@ const Nav = ({
     setSearchState,
     chatMoreOnClick,
 }: {
-    moreOnClick: (...args: any[]) => void;
+    moreOnClick: (state: ChatState) => void;
     state: "chat" | "menu";
     chatUsername: string | null;
     searchState: boolean;
@@ -26,7 +27,7 @@ const Nav = ({
             className="flex flex-row w-full py-[14px] px-[18px] border-b-[1px] border-zinc-800 borders relative"
         >
             <div
-                onClick={moreOnClick}
+                onClick={() => moreOnClick(state)}
                 className="flex flex-col relative text-[22px] text-zinc-600 cursor-pointer"
             >
                 {state === "chat" ? <ArrowBackIosNewRoundedIcon /> : <MenuRoundedIcon />}
@@ -49,7 +50,7 @@ const Nav = ({
             )}
             {state === "chat" && (
                 <div
-                    onClick={() => chatMoreOnClick()}
+                    onClick={() => chatMoreOnClick(state)}
                     className="absolute right-[18px] top-1/2 -translate-y-1/2 text-zinc-600 cursor-pointer"
                 >
                     <MoreVertRoundedIcon />

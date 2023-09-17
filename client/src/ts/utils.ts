@@ -12,10 +12,7 @@ export function addMessage(
         setChatStateFn((prev) => {
             let obj: TChat = { ...prev };
             if (message.receiver in obj) {
-                if (
-                    obj[message.receiver][obj[message.receiver]?.length - 1]?.index !==
-                    message.index
-                ) {
+                if (obj[message.receiver][obj[message.receiver]?.length - 1]?.index !== message.index) {
                     obj[message.receiver].push(message);
                 }
             } else {
@@ -96,4 +93,51 @@ export function hoursAndMinutes(time: Date | string): string {
         .getMinutes()
         .toString()
         .padStart(2, "0")}`;
+}
+
+export function setMessageSeen(
+    currentRoomWith: string,
+    setChatStateFn: Dispatch<SetStateAction<TChat>>,
+    message: Message
+) {
+    setChatStateFn((prev) => {
+        let obj = { ...prev };
+        let firstSeenIndex: number | null = null;
+
+        if (obj && currentRoomWith && obj[currentRoomWith]) {
+            for (let i = obj[currentRoomWith].length - 1; i >= 0; i--) {
+                if (obj[currentRoomWith][i].index === message.index) {
+                    obj[currentRoomWith][i].seen = true;
+                    firstSeenIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (firstSeenIndex !== null) {
+            for (let i = firstSeenIndex; i >= 0; i--) {
+                obj[currentRoomWith][i].seen = true;
+            }
+        }
+
+        return obj;
+    });
+}
+
+export function deleteMessage(
+    selfUsername: string | null,
+    setChatStateFn: Dispatch<SetStateAction<TChat>>,
+    message: Message
+) {
+    const chattingWith = message.sender === selfUsername ? message.receiver : message.sender;
+    setChatStateFn((prev) => {
+        let obj = { ...prev };
+        for (let i = 0; i < obj[chattingWith].length; i++) {
+            if (obj[chattingWith][i]?.index === message.index) {
+                delete obj[chattingWith][i];
+                break;
+            }
+        }
+        return obj;
+    });
 }

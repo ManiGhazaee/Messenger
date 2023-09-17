@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { hoursAndMinutes } from "../ts/utils";
 import MessageOptions from "./MessageOptions";
@@ -15,9 +15,6 @@ const ChatMessage = ({
     chatIndex,
     onSeenFn,
     selfUsername,
-    readyForSeen,
-    newMessagesMarker,
-    setNewMessagesMarker,
     deleteMessageOnClick,
     replyOnClick,
 }: {
@@ -26,13 +23,9 @@ const ChatMessage = ({
     chatIndex: number;
     onSeenFn: (index: number, message: Message) => void;
     selfUsername: string;
-    readyForSeen: boolean;
-    newMessagesMarker: number | null;
-    setNewMessagesMarker: Dispatch<SetStateAction<number | null>>;
     deleteMessageOnClick: (...args: any[]) => void;
     replyOnClick: (...args: any[]) => void;
 }) => {
-    const [newMessagesMarkerDisplay, setNewMessagesMarkerDisplay] = useState<boolean>(true);
     const [messageMoreOptionsDisplay, setMessageMoreOptionsDisplay] = useState<boolean>(false);
     const [clickPoint, setClickPoint] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -41,20 +34,13 @@ const ChatMessage = ({
     });
 
     useEffect(() => {
-        if (inView && selfUsername === message.receiver && readyForSeen) {
+        if (inView && selfUsername === message.receiver) {
+            console.log(message.content, "-------SEEN-------");
             onSeenFn(chatIndex, message);
         }
-    }, [inView, onSeenFn, readyForSeen]);
+    }, [inView, onSeenFn]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setNewMessagesMarkerDisplay(false);
-        }, 5000);
-
-        return () => clearTimeout(timer);
-    }, []);
-
-    const contextOnClick = (ev: React.MouseEvent<HTMLDivElement>) => {
+    const contextOnClick = useCallback((ev: React.MouseEvent<HTMLDivElement>) => {
         const chatCont = document.getElementById("chat-scrollable");
         if (!chatCont) return;
         const chatWidth = chatCont.offsetWidth;
@@ -81,29 +67,88 @@ const ChatMessage = ({
             prev = { x, y };
             return prev;
         });
-    };
+    }, []);
 
-    const scrollToReplyTarget = (index: number) => {
-        console.log("index", index);
+    const scrollToReplyTarget = useCallback((index: number) => {
         const replyTarget = document.getElementById(index.toString());
         const chatCont = document.getElementById("chat-scrollable");
-        console.log("replyTarget", replyTarget);
-        console.log("chatCont", chatCont);
 
         replyTarget?.classList.add("bg-zinc-900");
 
         setTimeout(() => {
             replyTarget?.classList.remove("bg-zinc-900");
-        }, 3000);
+        }, 2000);
 
         if (replyTarget && chatCont) {
             replyTarget.scrollIntoView({
                 behavior: "smooth",
-                block: "start",
-                inline: "nearest",
             });
         }
-    };
+    }, []);
+
+    const memoizedItems = useMemo(
+        () => [
+            {
+                text: "Replay",
+                onClick: replyOnClick,
+                params: [message.index, message],
+                icon: (
+                    <ReplyRoundedIcon
+                        style={{
+                            marginRight: "9px",
+                            top: "-2px",
+                            position: "relative",
+                        }}
+                    />
+                ),
+            },
+            {
+                text: "Copy",
+                onClick: (index) => {
+                    console.log(chatIndex);
+                },
+                icon: (
+                    <ContentCopyRoundedIcon
+                        style={{
+                            marginRight: "9px",
+                            top: "-2px",
+                            position: "relative",
+                        }}
+                    />
+                ),
+                params: [chatIndex],
+            },
+            {
+                text: "Forward",
+                onClick: () => {},
+                icon: (
+                    <ShortcutRoundedIcon
+                        style={{
+                            marginRight: "9px",
+                            top: "-2px",
+                            position: "relative",
+                        }}
+                    />
+                ),
+            },
+            {
+                text: "Delete",
+                onClick: deleteMessageOnClick,
+                icon: (
+                    <DeleteOutlineRoundedIcon
+                        style={{
+                            marginRight: "9px",
+                            top: "-2px",
+                            position: "relative",
+                        }}
+                    />
+                ),
+                params: [chatIndex, message],
+                style: { color: "red" },
+            },
+        ],
+        []
+    );
 
     return (
         <>
@@ -113,71 +158,12 @@ const ChatMessage = ({
                         display={messageMoreOptionsDisplay}
                         displayFn={setMessageMoreOptionsDisplay}
                         clickPoint={clickPoint}
-                        items={[
-                            {
-                                text: "Replay",
-                                onClick: replyOnClick,
-                                params: [chatIndex, message],
-                                icon: (
-                                    <ReplyRoundedIcon
-                                        style={{
-                                            marginRight: "9px",
-                                            top: "-2px",
-                                            position: "relative",
-                                        }}
-                                    />
-                                ),
-                            },
-                            {
-                                text: "Copy",
-                                onClick: (index) => {
-                                    console.log(chatIndex);
-                                },
-                                icon: (
-                                    <ContentCopyRoundedIcon
-                                        style={{
-                                            marginRight: "9px",
-                                            top: "-2px",
-                                            position: "relative",
-                                        }}
-                                    />
-                                ),
-                                params: [chatIndex],
-                            },
-                            {
-                                text: "Forward",
-                                onClick: () => {},
-                                icon: (
-                                    <ShortcutRoundedIcon
-                                        style={{
-                                            marginRight: "9px",
-                                            top: "-2px",
-                                            position: "relative",
-                                        }}
-                                    />
-                                ),
-                            },
-                            {
-                                text: "Delete",
-                                onClick: deleteMessageOnClick,
-                                icon: (
-                                    <DeleteOutlineRoundedIcon
-                                        style={{
-                                            marginRight: "9px",
-                                            top: "-2px",
-                                            position: "relative",
-                                        }}
-                                    />
-                                ),
-                                params: [chatIndex, message],
-                                style: { color: "red" },
-                            },
-                        ]}
+                        items={memoizedItems}
                     />
                     <div
                         id={message.index.toString()}
                         key={message.receiver + message.index.toString()}
-                        className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right`}
+                        className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right rounded-2xl`}
                         ref={ref}
                         onClick={(ev) => contextOnClick(ev)}
                     >
@@ -234,84 +220,16 @@ const ChatMessage = ({
                 </div>
             ) : (
                 <>
-                    {newMessagesMarker !== null && newMessagesMarker === message.index && (
-                        <div
-                            className={` ${
-                                newMessagesMarkerDisplay ? "unread_open" : "unread_close"
-                            } w-full duration-300 bg-zinc-900 my-[4px] text-zinc-500 text-center overflow-hidden`}
-                        >
-                            Unread messages
-                        </div>
-                    )}
                     <MessageOptions
                         display={messageMoreOptionsDisplay}
                         displayFn={setMessageMoreOptionsDisplay}
                         clickPoint={clickPoint}
-                        items={[
-                            {
-                                text: "Replay",
-                                onClick: replyOnClick,
-                                params: [chatIndex, message],
-                                icon: (
-                                    <ReplyRoundedIcon
-                                        style={{
-                                            marginRight: "9px",
-                                            top: "-2px",
-                                            position: "relative",
-                                        }}
-                                    />
-                                ),
-                            },
-                            {
-                                text: "Copy",
-                                onClick: (index) => {
-                                    console.log(chatIndex);
-                                },
-                                icon: (
-                                    <ContentCopyRoundedIcon
-                                        style={{
-                                            marginRight: "9px",
-                                            top: "-2px",
-                                            position: "relative",
-                                        }}
-                                    />
-                                ),
-                                params: [chatIndex],
-                            },
-                            {
-                                text: "Forward",
-                                onClick: () => {},
-                                icon: (
-                                    <ShortcutRoundedIcon
-                                        style={{
-                                            marginRight: "9px",
-                                            top: "-2px",
-                                            position: "relative",
-                                        }}
-                                    />
-                                ),
-                            },
-                            {
-                                text: "Delete",
-                                onClick: deleteMessageOnClick,
-                                icon: (
-                                    <DeleteOutlineRoundedIcon
-                                        style={{
-                                            marginRight: "9px",
-                                            top: "-2px",
-                                            position: "relative",
-                                        }}
-                                    />
-                                ),
-                                params: [chatIndex, message],
-                                style: { color: "red" },
-                            },
-                        ]}
+                        items={memoizedItems}
                     />
                     <div
                         id={message.index.toString()}
                         key={message.sender + message.index.toString()}
-                        className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px]`}
+                        className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px] rounded-2xl`}
                         ref={ref}
                         onClick={(ev) => contextOnClick(ev)}
                     >
