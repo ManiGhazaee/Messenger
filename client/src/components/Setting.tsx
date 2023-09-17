@@ -1,8 +1,9 @@
 import React, { Dispatch, SetStateAction, memo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import ConfirmModal from "./ConfirmModal";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import { TOKEN_STORAGE_KEY } from "../App";
 
 const Setting = memo(
@@ -54,6 +55,13 @@ const Setting = memo(
                             {username}
                         </div>
                     </div>
+                    <Link
+                        to="/"
+                        className=" block w-[calc(100%-8px)] whitespace-nowrap font-semibold text-blue-500 duration-200 cursor-pointer py-1 px-3 mx-auto my-[4px]  bg-black rounded-lg text-[18px] hover:bg-blue-400 hover:text-black relative"
+                    >
+                        <PersonRoundedIcon style={{ marginRight: "10px", top: "-1px", position: "relative" }} />
+                        <span className="w-full h-full">Main</span>
+                    </Link>
                     <div className="w-[calc(100%-8px)] whitespace-nowrap font-semibold text-zinc-500 duration-200 cursor-pointer py-1 px-3 mx-auto my-[4px]  bg-black rounded-lg text-[18px] hover:bg-zinc-400 hover:text-black">
                         <SettingsRoundedIcon style={{ marginRight: "10px", top: "-1px", position: "relative" }} />
                         Setting

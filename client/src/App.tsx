@@ -27,6 +27,7 @@ function App() {
     const [menu, setMenu] = useState<User | null>(null);
     const [socket, setSocket] = useState<Socket | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
+    const [verified, setVerified] = useState<boolean>(false);
 
     const memoizedMenu = useMemo(() => menu, [menu]);
     const memoizedUsername = useMemo(() => username, [username]);
@@ -66,21 +67,16 @@ function App() {
         console.log("menu data", data);
 
         if (!data.success) {
-            navigate("/login");
+            navigate("/signup");
         } else if (data && "user" in data && data.user) {
             setMenu(data.user);
             setUsername(data.user.username);
         }
+        setVerified(true);
     });
 
     useEffect(() => {
-        if (!token) {
-            navigate("/login");
-        }
-    }, []);
-
-    useEffect(() => {
-        if (socket && token) {
+        if (socket) {
             socket.emit("join", { token });
             socket.emit("menu", { token });
         }
@@ -95,6 +91,7 @@ function App() {
                         connectionStatus={connectionStatus}
                         token={memoizedToken}
                         username={memoizedUsername}
+                        verified={verified}
                     />
                 }
             />
