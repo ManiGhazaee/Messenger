@@ -34,7 +34,7 @@ const ChatMessage = ({
     });
 
     useEffect(() => {
-        if (inView && selfUsername === message.receiver) {
+        if (inView && selfUsername === message.receiver && !message.seen) {
             console.log(message.content, "-------SEEN-------");
             onSeenFn(chatIndex, message);
         }
@@ -174,7 +174,7 @@ const ChatMessage = ({
                         >
                             {message.reply && (
                                 <div
-                                    className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] duration-0 z-[180] pl-0 rounded-xl flex flex-row text-left hover:bg-blue-800 cursor-pointer "
+                                    className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] pl-0 rounded-xl flex flex-row text-left hover:bg-blue-800 cursor-pointer "
                                     onClick={(ev) => {
                                         ev.stopPropagation();
                                         if (
@@ -240,7 +240,7 @@ const ChatMessage = ({
                         >
                             {message.reply && (
                                 <div
-                                    className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] duration-0 z-[180] pl-0 rounded-xl flex flex-row text-left hover:bg-zinc-800 cursor-pointer "
+                                    className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] pl-0 rounded-xl flex flex-row text-left hover:bg-zinc-800 cursor-pointer "
                                     onClick={(ev) => {
                                         ev.stopPropagation();
                                         if (

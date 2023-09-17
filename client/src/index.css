@@ -229,24 +229,24 @@ html {
 }
 
 .message {
-    animation: message 300ms forwards;
+    animation: message 150ms forwards;
     font-size: 0;
     opacity: 0;
     max-width: 70%;
-    transform: scale(0) translateX(-150px);
+    transform: translateX(-150px);
     transform-origin: 100% 50%;
 }
 
 @keyframes message {
     100% {
         opacity: 1;
-        transform: scale(1) translateX(0);
+        transform: translateX(0);
         font-size: 14px;
     }
 }
 
 .message-time {
-    animation: messageTime 300ms forwards;
+    animation: messageTime 150ms forwards;
     font-size: 0;
 }
 

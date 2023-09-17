@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import useSocket from "../components/useSocket";
@@ -49,12 +49,21 @@ const MessengerPage = memo(
         const [clearHistoryConfirmModal, setClearHistoryConfirmModal] = useState<boolean>(false);
         const [deleteChatConfirmModal, setDeleteChatConfirmModal] = useState<boolean>(false);
         const [reply, setReply] = useState<MessageReply | null>(null);
+
         const navigate = useNavigate();
 
         const memoizedToken = useMemo(() => token, [token]);
         const memoizedChat = useMemo(() => chat, [chat]);
         const memoizedUsername = useMemo(() => username, [username]);
         const memoizedReply = useMemo(() => reply, [reply]);
+        const memoizedMenu = useMemo(() => menu, [menu]);
+        const memoizedSearchState = useMemo(() => searchState, [searchState]);
+        const memoizedState = useMemo(() => state, [state]);
+        const memoizedChatUsername = useMemo(() => chatUsername, [chatUsername]);
+        const memoizedSettingState = useMemo(() => settingState, [settingState]);
+        const memoizedCurrentRoomWith = useMemo(() => currentRoomWith, [currentRoomWith]);
+
+        const chatRef = useRef<HTMLDivElement>(null);
 
         useEffect(() => {
             if (!token) {
@@ -161,7 +170,7 @@ const MessengerPage = memo(
 
             if (socket) {
                 socket.emit("message", {
-                    token,
+                    token: memoizedToken,
                     index: messageIndex,
                     reply: message.reply,
                     sender: username,
@@ -174,27 +183,30 @@ const MessengerPage = memo(
             setMessageInput("");
         };
 
-        const searchOnClick = () => {
+        const searchOnClick = useCallback(() => {
             if (socket) {
-                socket.emit("search", { token, search: searchInput });
+                socket.emit("search", { token: memoizedToken, search: searchInput });
             }
-        };
+        }, [socket, memoizedToken, searchInput]);
 
-        const userOnClick = (username: string) => {
-            setCurrentRoomWith(() => username);
-            setState("chat");
-            setSearchState(false);
-            setReply(null);
-            setChatUsername(username);
-            if (socket) {
-                socket.emit("profile", { token, username });
-            }
+        const userOnClick = useCallback(
+            (username: string) => {
+                setCurrentRoomWith(() => username);
+                setState("chat");
+                setSearchState(false);
+                setReply(null);
+                setChatUsername(username);
+                if (socket) {
+                    socket.emit("profile", { token: memoizedToken, username });
+                }
 
-            const messageInput = document.getElementById("message-input");
-            if (messageInput) {
-                messageInput.focus();
-            }
-        };
+                const messageInput = document.getElementById("message-input");
+                if (messageInput) {
+                    messageInput.focus();
+                }
+            },
+            [socket, memoizedToken]
+        );
 
         const moreOnClick = useCallback((state: "chat" | "menu") => {
             setState("menu");
@@ -214,7 +226,7 @@ const MessengerPage = memo(
 
                 if (socket) {
                     socket.emit("seen", {
-                        token,
+                        token: memoizedToken,
                         index: message.index,
                         message,
                         is_last,
@@ -229,7 +241,7 @@ const MessengerPage = memo(
                     return obj;
                 });
             },
-            [chat, currentRoomWith, token]
+            [memoizedChat, memoizedCurrentRoomWith, memoizedToken]
         );
 
         const chatMoreOnClick = useCallback(
@@ -240,58 +252,73 @@ const MessengerPage = memo(
             [chatMoreModalDisplay]
         );
 
-        const clearHistory = () => {
+        const clearHistory = useCallback(() => {
             setClearHistoryConfirmModal(false);
             if (socket) {
-                socket.emit("clearHistory", { token, sender: username, receiver: currentRoomWith });
+                socket.emit("clearHistory", {
+                    token: memoizedToken,
+                    sender: memoizedUsername,
+                    receiver: memoizedCurrentRoomWith,
+                });
             }
-        };
+        }, [socket, memoizedToken, memoizedCurrentRoomWith, memoizedUsername]);
 
-        const deleteChat = () => {
+        const deleteChat = useCallback(() => {
             setDeleteChatConfirmModal(false);
             if (socket) {
-                socket.emit("deleteChat", { token, sender: username, receiver: currentRoomWith });
+                socket.emit("deleteChat", {
+                    token: memoizedToken,
+                    sender: memoizedUsername,
+                    receiver: memoizedCurrentRoomWith,
+                });
             }
-        };
+        }, [socket, memoizedToken, memoizedUsername, memoizedCurrentRoomWith]);
 
         return (
             <div className="h-screen overflow-hidden">
-                <Setting username={username} settingState={settingState} setSettingState={setSettingState} />
+                <Setting
+                    username={memoizedUsername}
+                    settingState={memoizedSettingState}
+                    setSettingState={useMemo(() => setSettingState, [setSettingState])}
+                />
                 <Nav
-                    searchState={searchState}
-                    setSearchState={setSearchState}
+                    searchState={memoizedSearchState}
+                    setSearchState={useMemo(() => setSearchState, [setSearchState])}
                     moreOnClick={moreOnClick}
-                    state={state}
-                    chatUsername={chatUsername}
+                    state={memoizedState}
+                    chatUsername={memoizedChatUsername}
                     chatMoreOnClick={chatMoreOnClick}
                 />
                 <MoreOptions
-                    items={[
-                        {
-                            text: "Clear History",
-                            onClick: () => {
-                                setClearHistoryConfirmModal(true);
+                    items={useMemo(
+                        () => [
+                            {
+                                text: "Clear History",
+                                onClick: () => {
+                                    setClearHistoryConfirmModal(true);
+                                },
+                                icon: (
+                                    <RestoreRoundedIcon
+                                        style={{ marginRight: "10px", top: "-1px", position: "relative" }}
+                                    />
+                                ),
                             },
-                            icon: (
-                                <RestoreRoundedIcon
-                                    style={{ marginRight: "10px", top: "-1px", position: "relative" }}
-                                />
-                            ),
-                        },
-                        {
-                            text: "Delete Chat",
-                            onClick: () => {
-                                setDeleteChatConfirmModal(true);
-                            },
-                            style: { color: "red" },
+                            {
+                                text: "Delete Chat",
+                                onClick: () => {
+                                    setDeleteChatConfirmModal(true);
+                                },
+                                style: { color: "red" },
 
-                            icon: (
-                                <DeleteOutlineRoundedIcon
-                                    style={{ marginRight: "10px", top: "-1px", position: "relative" }}
-                                />
-                            ),
-                        },
-                    ]}
+                                icon: (
+                                    <DeleteOutlineRoundedIcon
+                                        style={{ marginRight: "10px", top: "-1px", position: "relative" }}
+                                    />
+                                ),
+                            },
+                        ],
+                        []
+                    )}
                     display={chatMoreModalDisplay}
                     displayFn={setChatMoreModalDisplay}
                 />
@@ -326,7 +353,7 @@ const MessengerPage = memo(
                         id="main"
                         className={`flex flex-row ${searchState ? "h-0" : "h-full"} overflow-hidden duration-300`}
                     >
-                        <Menu menu={menu} state={state} userOnClick={userOnClick} />
+                        <Menu menu={memoizedMenu} state={state} userOnClick={userOnClick} />
                         <div
                             id="chat"
                             className={`${
@@ -342,7 +369,8 @@ const MessengerPage = memo(
                             {chat && state === "chat" && (
                                 <div
                                     id="chat-scrollable"
-                                    className={`h-[calc(100%-50px)] fade_in_anim overflow-y-scroll relative flex flex-col-reverse`}
+                                    className={`h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse`}
+                                    ref={chatRef}
                                 >
                                     {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && socket ? (
                                         <Chat

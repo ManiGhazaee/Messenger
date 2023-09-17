@@ -49,7 +49,7 @@ export function setMessageStatusToSuccess(
             let obj: TChat = { ...prev };
             if (message.receiver in obj) {
                 for (let i = obj[message.receiver].length - 1; i >= 0; i--) {
-                    if (obj[message.receiver][i].index === message.index) {
+                    if (obj[message.receiver][i]?.index === message.index) {
                         obj[message.receiver][i].status = "SUCCESS";
                     }
                 }

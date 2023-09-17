@@ -27,21 +27,9 @@ const Chat = memo(
     }) => {
         console.log("-------------------------Chat-------------------------");
 
-        const chatContRef = useRef<HTMLDivElement>(null);
-        const messagesRef = useRef<HTMLDivElement>(null);
-
         const [autoScrollRef, autoScrollInView] = useInView({
             threshold: 0,
         });
-
-        useEffect(() => {
-            if (autoScrollInView) {
-                const autoS = document.getElementById("auto-scroll");
-                if (autoS) {
-                    autoS.scrollIntoView({ behavior: "smooth" });
-                }
-            }
-        }, [chat]);
 
         const scrollToBottomOnClick = useCallback(() => {
             const chatScrollable = document.getElementById("chat-scrollable");
@@ -89,7 +77,7 @@ const Chat = memo(
 
         return (
             <>
-                <div id="chat-cont" className="text-[14px] fade_in_anim" ref={chatContRef}>
+                <div id="chat-cont" className="text-[14px] ">
                     <div
                         className={`${
                             autoScrollInView
@@ -113,7 +101,7 @@ const Chat = memo(
                             }}
                         />
                     </div>
-                    <div ref={messagesRef}>
+                    <div className="">
                         {selfUsername &&
                             chat.map((message, index) =>
                                 message.sender === selfUsername ? (

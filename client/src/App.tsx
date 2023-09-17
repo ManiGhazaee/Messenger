@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import SignupPage from "./pages/SignupPage";
@@ -22,6 +22,11 @@ function App() {
     const [username, setUsername] = useState<string | null>(null);
     const [menu, setMenu] = useState<User | null>(null);
     const [socket, setSocket] = useState<Socket | null>(null);
+
+    const memoizedMenu = useMemo(() => menu, [menu]);
+    const memoizedUsername = useMemo(() => username, [username]);
+    const memoizedSocket = useMemo(() => socket, [socket]);
+    const memoizedToken = useMemo(() => token, [token]);
 
     useEffect(() => {
         const newSocket = io("ws://localhost:8080");
@@ -60,7 +65,14 @@ function App() {
         <Routes>
             <Route
                 path="/messenger"
-                element={<MessengerPage socket={socket} menu={menu} token={token} username={username} />}
+                element={
+                    <MessengerPage
+                        socket={memoizedSocket}
+                        menu={memoizedMenu}
+                        token={memoizedToken}
+                        username={memoizedUsername}
+                    />
+                }
             />
             <Route
                 path="/signup"
