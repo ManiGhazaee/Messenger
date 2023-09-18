@@ -7,10 +7,12 @@ const Menu = memo(
         menu,
         state,
         userOnClick,
+        chatUsername,
     }: {
         menu: User | null;
         state: "chat" | "menu";
         userOnClick: (username: string) => void;
+        chatUsername: string | null;
     }) => {
         console.log("menu", menu);
         return (
@@ -18,14 +20,22 @@ const Menu = memo(
                 id="menu"
                 className={`${
                     state === "menu" ? "w-full" : "w-0"
-                } relative sm:w-[400px] bg-zinc-900 md:border-r md:border-r-zinc-800 h-full duration-200 overflow-y-scroll`}
+                } relative sm:w-[400px] bg-zinc-900 md:border-r md:border-r-zinc-800 h-full duration-200 overflow-y-scroll sm:rounded-xl sm:border sm:border-zinc-800 sm:py-[4px] sm:pl-[4px] sm:pr-[2px] sm:top-[4px] sm:h-[calc(100%-8px)]`}
             >
                 {menu && "rooms" in menu && menu.rooms.length !== 0 ? (
-                    menu.rooms.map((elem) => (
+                    menu.rooms.map((elem, index) => (
                         <div
-                            className="scale_opacity_anim_300 h-[60px] flex flex-row w-[100%] hover:bg-zinc-400 border-borders group cursor-pointer duration-200 overflow-hidden"
+                            className="scale_opacity_anim_300 h-[60px] flex flex-row w-[100%] hover:bg-zinc-400 border-borders group cursor-pointer duration-200 overflow-hidden rounded-lg"
+                            style={{ animationDelay: `${index * 50}ms` }}
                             onClick={() => userOnClick(elem.username)}
                         >
+                            <div
+                                style={{
+                                    height: elem.username === chatUsername ? "70%" : "0px",
+                                    opacity: elem.username === chatUsername ? "1" : "0",
+                                }}
+                                className="w-[6px] duration-150 bg-blue-500 group-hover:bg-black rounded-full absolute top-1/2 -translate-y-1/2 left-[4px]"
+                            ></div>
                             <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-zinc-800"></div>
                             <div className="flex flex-col relative w-full">
                                 <div className="text-[18px] mt-[6px] ml-[10px] font-semibold group-hover:text-black duration-200">

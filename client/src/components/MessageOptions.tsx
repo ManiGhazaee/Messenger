@@ -31,14 +31,14 @@ const MessageOptions = memo(
                                     top: clickPoint.y,
                                     left: clickPoint.x,
                                 }}
-                                className="scale_opacity_anim_300 absolute z-[180] w-[180px] bg-zinc-900 border border-zinc-800 rounded-xl"
+                                className="scale_opacity_anim_300 bg-zinc-900 bg-opacity-60 backdrop-blur-md absolute z-[180] w-[180px] rounded-xl"
                             >
                                 {items &&
                                     items.length !== 0 &&
                                     items.map((elem) => (
                                         <div
                                             style={elem.style}
-                                            className="text-[14px] w-[calc(100%-8px)] my-[4px] active:bg-zinc-400 active:text-black mx-auto px-2 py-1 text-text_2 cursor-pointer bg-black hover:bg-zinc-800 rounded-lg"
+                                            className="text-[14px] w-[calc(100%-8px)] my-[4px] active:bg-zinc-400 active:text-black mx-auto px-2 py-1 text-text_2 cursor-pointer bg-opacity-0 bg-black hover:bg-opacity-100 rounded-lg duration-150 hover:text-zinc-100"
                                             onClick={() => {
                                                 if (elem.params) {
                                                     elem.onClick(...elem.params);

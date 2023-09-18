@@ -31,6 +31,8 @@ const Chat = memo(
             threshold: 0,
         });
 
+        const memoizedOnSeenFn = useMemo(() => onSeenFn, []);
+
         const scrollToBottomOnClick = useCallback(() => {
             const chatScrollable = document.getElementById("chat-scrollable");
             if (chatScrollable) {
@@ -44,7 +46,7 @@ const Chat = memo(
         const deleteMessageOnClick = useCallback(
             (index: number, message: Message) => {
                 if (!token) return;
-                const userInChat = chat[index].sender === selfUsername ? message.receiver : message.sender;
+                const userInChat = message.sender === selfUsername ? message.receiver : message.sender;
 
                 socket.emit("deleteMessage", { token, message });
 
@@ -58,7 +60,7 @@ const Chat = memo(
                     return obj;
                 });
             },
-            [token, chat]
+            [token]
         );
 
         const replyOnClick = useCallback((index: number, message: Message) => {
@@ -73,6 +75,44 @@ const Chat = memo(
             if (messageInput) {
                 messageInput.focus();
             }
+        }, []);
+
+        const scrollToReplyTarget = useCallback((index: number) => {
+            const replyTarget = document.getElementById(index.toString());
+            const chatCont = document.getElementById("chat-scrollable");
+
+            replyTarget?.classList.add("bg-zinc-900");
+
+            setTimeout(() => {
+                replyTarget?.classList.remove("bg-zinc-900");
+            }, 2000);
+
+            if (replyTarget && chatCont) {
+                replyTarget.scrollIntoView({
+                    behavior: "smooth",
+                });
+            }
+        }, []);
+
+        const contextOnClick = useCallback(function (ev: React.MouseEvent<HTMLDivElement>) {
+            const chatCont = document.getElementById("chat-scrollable")!;
+            const chatWidth = chatCont.offsetWidth;
+            const chatHeight = chatCont.offsetHeight;
+
+            const rect = chatCont.getBoundingClientRect();
+
+            const chatOffsetTop = rect.top + window.scrollY;
+            const chatOffsetLeft = rect.left + window.scrollX;
+
+            let x = ev.clientX;
+            let y = ev.clientY;
+            if (ev.clientX > chatWidth / 2 + chatOffsetLeft) {
+                x = ev.clientX - 180;
+            }
+            if (ev.clientY > chatHeight / 2 + chatOffsetTop) {
+                y = ev.clientY - 4 * 38 - 8;
+            }
+            return { x, y };
         }, []);
 
         return (
@@ -111,21 +151,25 @@ const Chat = memo(
                                     <ChatMessage
                                         message={message}
                                         type="sender"
-                                        onSeenFn={onSeenFn}
+                                        onSeenFn={memoizedOnSeenFn}
                                         chatIndex={index}
                                         selfUsername={selfUsername}
                                         deleteMessageOnClick={deleteMessageOnClick}
                                         replyOnClick={replyOnClick}
+                                        scrollToReplyTarget={scrollToReplyTarget}
+                                        contextOnClick={contextOnClick}
                                     />
                                 ) : (
                                     <ChatMessage
                                         message={message}
                                         type="receiver"
-                                        onSeenFn={onSeenFn}
+                                        onSeenFn={memoizedOnSeenFn}
                                         chatIndex={index}
                                         selfUsername={selfUsername}
                                         deleteMessageOnClick={deleteMessageOnClick}
                                         replyOnClick={replyOnClick}
+                                        scrollToReplyTarget={scrollToReplyTarget}
+                                        contextOnClick={contextOnClick}
                                     />
                                 )
                             )}

@@ -353,7 +353,12 @@ const MessengerPage = memo(
                         id="main"
                         className={`flex flex-row ${searchState ? "h-0" : "h-full"} overflow-hidden duration-300`}
                     >
-                        <Menu menu={memoizedMenu} state={state} userOnClick={userOnClick} />
+                        <Menu
+                            menu={memoizedMenu}
+                            state={state}
+                            userOnClick={userOnClick}
+                            chatUsername={memoizedChatUsername}
+                        />
                         <div
                             id="chat"
                             className={`${
@@ -369,7 +374,7 @@ const MessengerPage = memo(
                             {chat && state === "chat" && (
                                 <div
                                     id="chat-scrollable"
-                                    className={`h-[calc(100%-50px)] overflow-y-scroll relative flex flex-col-reverse`}
+                                    className={`h-[calc(100%-46px)] overflow-y-scroll relative flex flex-col-reverse`}
                                     ref={chatRef}
                                 >
                                     {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && socket ? (
@@ -439,7 +444,7 @@ const MessengerPage = memo(
                                 </div>
                             </div>
 
-                            <div className="flex flex-row w-[calc(100%-10px)] h-[40px] absolute left-0 bottom-[5px] ml-[5px]">
+                            <div className="flex flex-row w-[calc(100%-10px)] h-[40px] absolute left-0 bottom-[4px] ml-[5px]">
                                 <div className="flex-grow bg-zinc-900 border-zinc-800 border-[1px] h-full rounded-full pl-4 pr-11 ">
                                     <textarea
                                         id="message-input"

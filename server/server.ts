@@ -116,7 +116,7 @@ io.on("connection", (socket: Socket) => {
                 return;
             }
 
-            const messages = await getRoom(roomId, 100);
+            const messages = await getRoom(roomId, 60);
             if (messages && messages.length !== 0) {
                 const newMessagesMarker: number | null = findNewMessagesIndexMarker(messages, user.username);
 
