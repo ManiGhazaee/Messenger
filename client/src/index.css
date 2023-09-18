@@ -373,3 +373,22 @@ html {
 .button_shadow_hover {
     box-shadow: 0px 0px 0px 0px #00000000;
 }
+
+.anim_delay_100 {
+    animation-delay: 100ms;
+}
+.anim_delay_200 {
+    animation-delay: 200ms;
+}
+.anim_delay_300 {
+    animation-delay: 300ms;
+}
+.anim_delay_400 {
+    animation-delay: 400ms;
+}
+.anim_delay_500 {
+    animation-delay: 500ms;
+}
+.anim_delay_600 {
+    animation-delay: 600ms;
+}

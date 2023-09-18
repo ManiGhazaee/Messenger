@@ -18,17 +18,19 @@ const LandingPage = ({
         <>
             {token && username && verified ? (
                 <div className="text-center">
-                    <div className="w-[120px] aspect-square rounded-full mx-auto my-[20px] bg-zinc-800"></div>
-                    <div className="text-[34px] mt-[20px] mb-[14px] font-bold">{username}</div>
+                    <div className="w-[120px] scale_opacity_anim_300 aspect-square rounded-full mx-auto my-[20px] bg-zinc-800"></div>
+                    <div className="text-[34px] scale_opacity_anim_300 anim_delay_100 mt-[20px] mb-[14px] font-bold">
+                        {username}
+                    </div>
 
-                    <div className="text-[14px] w-fit cursor-pointer text-blue-400 mx-auto mb-[160px] hover:text-blue-600">
+                    <div className="text-[14px] w-fit cursor-pointer scale_opacity_anim_300 anim_delay_200 text-blue-400 mx-auto mb-[160px] hover:text-blue-600">
                         <Link className="w-fit" to={""}>
                             {"Edit profile"}
                         </Link>
                     </div>
 
                     <div
-                        className=" bg-gradient-to-r relative from-cyan-300 z-[100] button_shadow shadow-blue-500 to-blue-500 group hover:cursor-pointer select-none w-[156px] rounded-[12px] h-[42px] py-[6px] text-[20px]
+                        className="scale_opacity_anim_300 anim_delay_300 bg-gradient-to-r relative from-cyan-300 z-[100] button_shadow shadow-blue-500 to-blue-500 group hover:cursor-pointer select-none w-[156px] rounded-[12px] h-[42px] py-[6px] text-[20px]
              text-black font-bold mx-auto hover:shadow-none duration-200"
                     >
                         <Link to={"/messenger"} className="outline-none">
@@ -47,10 +49,10 @@ const LandingPage = ({
                         </Link>
                     </div>
 
-                    <div className="text-[14px] text-blue-400 absolute left-1/2 -translate-x-1/2 bottom-[120px]">
+                    <div className="text-[14px] scale_opacity_anim_300_0_origin anim_delay_400 text-blue-400 absolute left-1/2 -translate-x-1/2 bottom-[120px]">
                         {connectionStatus === "connected" ? "Connected" : "Reconnecting..."}
                     </div>
-                    <div className="flex flex-row absolute w-fit left-1/2 -translate-x-1/2 bottom-[80px]">
+                    <div className="flex flex-row absolute scale_opacity_anim_300_0_origin anim_delay_500 w-fit left-1/2 -translate-x-1/2 bottom-[80px]">
                         <div className="px-1 py-1 duration-200 min-w-[70px]  text-[14px] text-blue-400 hover:text-blue-600 cursor-pointer">
                             Log in
                         </div>
@@ -63,7 +65,7 @@ const LandingPage = ({
                         </div>
                     </div>
 
-                    <div className="text-[14px] absolute left-1/2 -translate-x-1/2 bottom-[20px] text-zinc-600">
+                    <div className="text-[14px] scale_opacity_anim_300_0_origin anim_delay_600 absolute left-1/2 -translate-x-1/2 bottom-[20px] text-zinc-600">
                         Created by{" "}
                         <a
                             className="text-zinc-600 underline hover:text-blue-600"
@@ -107,7 +109,7 @@ const LandingPage = ({
                     </div>
                 </div>
             ) : (
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
                     <Loading color="white" />
                 </div>
             )}

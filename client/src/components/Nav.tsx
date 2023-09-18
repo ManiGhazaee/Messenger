@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, memo } from "react";
+import React, { Dispatch, SetStateAction, memo, useMemo } from "react";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
@@ -22,16 +22,21 @@ const Nav = memo(
         setSearchState: Dispatch<SetStateAction<boolean>>;
         chatMoreOnClick: (...args: any[]) => void;
     }) => {
+        const iconStyle = useMemo(() => ({ width: "27px", height: "27px" }), []);
         return (
             <div
                 id="nav"
-                className="flex flex-row w-full py-[14px] px-[18px] border-b-[1px] border-zinc-800 borders relative"
+                className="flex flex-row w-full py-[14px] px-[18px] h-[60px] border-b-[1px] border-zinc-800 borders relative"
             >
                 <div
                     onClick={() => moreOnClick(state)}
                     className="flex flex-col relative text-[22px] text-zinc-600 cursor-pointer"
                 >
-                    {state === "chat" ? <ArrowBackIosNewRoundedIcon /> : <MenuRoundedIcon />}
+                    {state === "chat" ? (
+                        <ArrowBackIosNewRoundedIcon style={iconStyle} />
+                    ) : (
+                        <MenuRoundedIcon style={iconStyle} />
+                    )}
                 </div>
                 <div className="text-[18px] font-bold ml-4 flex flex-row">
                     {chatUsername ? (
@@ -46,7 +51,7 @@ const Nav = memo(
                         onClick={() => setSearchState(!searchState)}
                         className="absolute right-[18px] top-1/2 -translate-y-1/2 text-zinc-600 cursor-pointer"
                     >
-                        {searchState ? <CloseRoundedIcon /> : <SearchRoundedIcon />}
+                        {searchState ? <CloseRoundedIcon style={iconStyle} /> : <SearchRoundedIcon style={iconStyle} />}
                     </div>
                 )}
                 {state === "chat" && (
@@ -54,7 +59,7 @@ const Nav = memo(
                         onClick={() => chatMoreOnClick(state)}
                         className="absolute right-[18px] top-1/2 -translate-y-1/2 text-zinc-600 cursor-pointer"
                     >
-                        <MoreVertRoundedIcon />
+                        <MoreVertRoundedIcon style={iconStyle} />
                     </div>
                 )}
             </div>

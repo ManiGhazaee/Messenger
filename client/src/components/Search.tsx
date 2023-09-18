@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, memo } from "react";
+import React, { Dispatch, SetStateAction, memo, useMemo } from "react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
 const Search = memo(
@@ -17,6 +17,8 @@ const Search = memo(
         searchResult: SearchResult | undefined;
         userOnClick: (username: string) => void;
     }) => {
+        const iconStyle = useMemo(() => ({ width: "27px", height: "27px" }), []);
+
         return (
             <div
                 id="search"
@@ -38,7 +40,7 @@ const Search = memo(
                         className="border-[1px] border-zinc-800 bg-zinc-900 text-zinc-600 active:bg-white active:text-black duration-100 cursor-pointer rounded-full w-[40px] h-full relative ml-[10px]"
                         onClick={searchOnClick}
                     >
-                        <SearchRoundedIcon />
+                        <SearchRoundedIcon style={iconStyle} />
                     </button>
                 </div>
                 <div className="ml-[18px] mt-[14px] w-[calc(100%-36px)] h-[calc(100%-80px)] rounded-xl border border-zinc-800 bg-zinc-900 overflow-y-scroll">

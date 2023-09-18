@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { Dispatch, SetStateAction, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import ChatMessage from "./ChatMessage";
 import { Socket } from "socket.io-client";
@@ -92,13 +92,16 @@ const Chat = memo(
                     >
                         <ArrowDownwardIcon
                             className=" text-blue-500"
-                            style={{
-                                position: "absolute",
-                                top: "50%",
-                                left: "50%",
-                                transform: "translate(-50%, -50%)",
-                                fontSize: "30px",
-                            }}
+                            style={useMemo(
+                                () => ({
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -50%)",
+                                    fontSize: "30px",
+                                }),
+                                []
+                            )}
                         />
                     </div>
                     <div className="">
