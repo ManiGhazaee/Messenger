@@ -218,32 +218,28 @@ const MessengerPage = memo(
             setReply(null);
         }, []);
 
-        const onSeen = useCallback(
-            (index: number, message: Message) => {
-                if (message.seen) return;
-                let is_last = false;
-                if (currentRoomWith && chat[currentRoomWith].length - 1 === index) is_last = true;
+        const onSeen = (index: number, message: Message) => {
+            if (message.seen) return;
+            let is_last = false;
+            if (currentRoomWith && chat[currentRoomWith].length - 1 === index) is_last = true;
 
-                if (socket) {
-                    socket.emit("seen", {
-                        token: memoizedToken,
-                        index: message.index,
-                        message,
-                        is_last,
-                    });
-                }
-
-                setChat((prev) => {
-                    let obj = { ...prev };
-                    if (obj && currentRoomWith && obj[currentRoomWith]) {
-                        obj[currentRoomWith][index].seen = true;
-                    }
-                    return obj;
+            if (socket) {
+                socket.emit("seen", {
+                    token: memoizedToken,
+                    index: message.index,
+                    message,
+                    is_last,
                 });
-            },
-            [memoizedChat, memoizedCurrentRoomWith, memoizedToken]
-        );
+            }
 
+            setChat((prev) => {
+                let obj = { ...prev };
+                if (obj && currentRoomWith && obj[currentRoomWith]) {
+                    obj[currentRoomWith][index].seen = true;
+                }
+                return obj;
+            });
+        };
         const chatMoreOnClick = useCallback(
             (state: "chat" | "menu") => {
                 if (state !== "chat") return;
@@ -380,7 +376,7 @@ const MessengerPage = memo(
                                     {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && socket ? (
                                         <Chat
                                             token={memoizedToken}
-                                            chat={memoizedChat[currentRoomWith]}
+                                            chat={chat[currentRoomWith]}
                                             setChat={setChat}
                                             selfUsername={memoizedUsername}
                                             socket={socket}

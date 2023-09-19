@@ -53,12 +53,18 @@ const LandingPage = ({
                         {connectionStatus === "connected" ? "Connected" : "Reconnecting..."}
                     </div>
                     <div className="flex flex-row absolute scale_opacity_anim_300_0_origin anim_delay_500 w-fit left-1/2 -translate-x-1/2 bottom-[80px]">
-                        <div className="px-1 py-1 duration-200 min-w-[70px]  text-[14px] text-blue-400 hover:text-blue-600 cursor-pointer">
+                        <Link
+                            to="/login"
+                            className="px-1 py-1 duration-200 min-w-[70px]  text-[14px] text-blue-400 hover:text-blue-600 cursor-pointer"
+                        >
                             Log in
-                        </div>
-                        <div className="px-1 py-1 duration-200 min-w-[70px]  text-[14px] text-blue-400  hover:text-blue-600 cursor-pointer">
+                        </Link>
+                        <Link
+                            to="/signup"
+                            className="px-1 py-1 duration-200 min-w-[70px]  text-[14px] text-blue-400  hover:text-blue-600 cursor-pointer"
+                        >
                             Sign up
-                        </div>
+                        </Link>
 
                         <div className="px-1 py-1 duration-200 min-w-[70px]  text-[14px] text-red-400  hover:text-red-600 cursor-pointer">
                             Log out
