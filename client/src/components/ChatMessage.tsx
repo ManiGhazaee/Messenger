@@ -51,6 +51,22 @@ const ChatMessage = memo(
             []
         );
 
+        const memoizedReplyIcon = useMemo(
+            () => (
+                <ReplyRoundedIcon
+                    className=""
+                    style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        fontSize: "21px",
+                    }}
+                />
+            ),
+            []
+        );
+
         useEffect(() => {
             if (inView && selfUsername === message.receiver && !message.seen) {
                 console.log(message.content, "-------SEEN-------");
@@ -140,7 +156,7 @@ const ChatMessage = memo(
         return (
             <>
                 {type === "sender" ? (
-                    <div className="relative">
+                    <>
                         <MessageOptions
                             display={messageMoreOptionsDisplay}
                             displayFn={setMessageMoreOptionsDisplay}
@@ -150,7 +166,7 @@ const ChatMessage = memo(
                         <div
                             id={message.index.toString()}
                             key={message.receiver + message.index.toString()}
-                            className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right rounded-2xl`}
+                            className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right rounded-2xl relative group`}
                             ref={ref}
                             onClick={messageOnClick}
                         >
@@ -159,6 +175,16 @@ const ChatMessage = memo(
                                     messageMoreOptionsDisplay ? "bg-blue-400" : "bg-blue-700"
                                 }  rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
                             >
+                                <div
+                                    className="group-hover:opacity-100 opacity-0 duration-150 hover:bg-opacity-100 w-[30px] hidden sm:block rounded-full aspect-square bg-zinc-800 hover:text-blue-500 text-zinc-500 bg-opacity-60 border border-zinc-800 absolute left-[-34px] bottom-[0px] hover:cursor-pointer"
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        replyOnClick(message.index, message);
+                                    }}
+                                >
+                                    {memoizedReplyIcon}
+                                </div>
+
                                 {message.reply && (
                                     <div
                                         className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] pl-0 rounded-xl flex flex-row text-left hover:bg-blue-800 cursor-pointer "
@@ -204,7 +230,7 @@ const ChatMessage = memo(
                                 )}
                             </div>
                         </div>
-                    </div>
+                    </>
                 ) : (
                     <>
                         <MessageOptions
@@ -216,7 +242,7 @@ const ChatMessage = memo(
                         <div
                             id={message.index.toString()}
                             key={message.sender + message.index.toString()}
-                            className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px] rounded-2xl`}
+                            className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px] rounded-2xl group relative`}
                             ref={ref}
                             onClick={messageOnClick}
                         >
@@ -225,6 +251,15 @@ const ChatMessage = memo(
                                     messageMoreOptionsDisplay ? "bg-zinc-800" : "bg-zinc-900"
                                 }  border border-zinc-800 rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
                             >
+                                <div
+                                    className="group-hover:opacity-100 opacity-0 duration-150 hover:bg-opacity-100 w-[30px] hidden sm:block rounded-full aspect-square bg-zinc-800 hover:text-blue-500 text-zinc-500 bg-opacity-60 border border-zinc-800 absolute right-[-34px] bottom-[0px] hover:cursor-pointer"
+                                    onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        replyOnClick(message.index, message);
+                                    }}
+                                >
+                                    {memoizedReplyIcon}
+                                </div>
                                 {message.reply && (
                                     <div
                                         className="py-1 pr-3 relative w-[calc(100%+16px)] left-[-8px] pl-0 rounded-xl flex flex-row text-left hover:bg-zinc-800 cursor-pointer "

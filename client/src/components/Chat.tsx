@@ -31,8 +31,6 @@ const Chat = memo(
             threshold: 0,
         });
 
-        const memoizedOnSeenFn = useMemo(() => onSeenFn, []);
-
         const scrollToBottomOnClick = useCallback(() => {
             const chatScrollable = document.getElementById("chat-scrollable");
             if (chatScrollable) {
@@ -151,7 +149,7 @@ const Chat = memo(
                                     <ChatMessage
                                         message={message}
                                         type="sender"
-                                        onSeenFn={memoizedOnSeenFn}
+                                        onSeenFn={onSeenFn}
                                         chatIndex={index}
                                         selfUsername={selfUsername}
                                         deleteMessageOnClick={deleteMessageOnClick}
@@ -163,7 +161,7 @@ const Chat = memo(
                                     <ChatMessage
                                         message={message}
                                         type="receiver"
-                                        onSeenFn={memoizedOnSeenFn}
+                                        onSeenFn={onSeenFn}
                                         chatIndex={index}
                                         selfUsername={selfUsername}
                                         deleteMessageOnClick={deleteMessageOnClick}

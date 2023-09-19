@@ -26,7 +26,7 @@ const Nav = memo(
         return (
             <div
                 id="nav"
-                className="flex flex-row w-full py-[14px] px-[18px] h-[60px] border-b-[1px] border-zinc-800 borders relative"
+                className="flex flex-row w-full py-[14px] px-[18px] h-[60px] border-b-[1px] border-zinc-800 borders relative rounded-b-xl"
             >
                 <div
                     onClick={() => moreOnClick(state)}
