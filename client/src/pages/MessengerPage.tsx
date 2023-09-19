@@ -49,6 +49,9 @@ const MessengerPage = memo(
         const [clearHistoryConfirmModal, setClearHistoryConfirmModal] = useState<boolean>(false);
         const [deleteChatConfirmModal, setDeleteChatConfirmModal] = useState<boolean>(false);
         const [reply, setReply] = useState<MessageReply | null>(null);
+        const [sentTyping, setSentTyping] = useState<boolean>(false);
+        const [typingTimeout, setTypingTimeout] = useState<boolean>(true);
+        const [typers, setTypers] = useState<string[]>([]);
 
         const navigate = useNavigate();
 
@@ -154,6 +157,12 @@ const MessengerPage = memo(
             if (reply !== null) {
                 message.reply = reply;
                 setReply(null);
+            }
+
+            if (socket) {
+                socket.emit("typing", { status: "END", sender: username, receiver: currentRoomWith });
+                setSentTyping(false);
+                setTypingTimeout(true);
             }
 
             setChat((prev) => {
@@ -270,6 +279,49 @@ const MessengerPage = memo(
             }
         }, [socket, memoizedToken, memoizedUsername, memoizedCurrentRoomWith]);
 
+        useSocket(socket, "typing", (data: { status: "START" | "END"; sender: string; receiver: string }) => {
+            console.log("TYPING", data);
+            if (data.status === "START") {
+                setTypers((prev) => {
+                    if (prev.includes(data.sender)) {
+                        return prev;
+                    } else {
+                        const _prev = [...typers];
+                        _prev.push(data.sender);
+
+                        return _prev;
+                    }
+                });
+            } else if (data.status === "END") {
+                setTypers((prev) => {
+                    if (!prev.includes(data.sender)) {
+                        return prev;
+                    } else {
+                        const _prev = [...typers];
+                        const index = _prev.indexOf(data.sender);
+                        if (index !== -1) _prev.splice(index, 1);
+                        return _prev;
+                    }
+                });
+            }
+        });
+
+        const sendTyping = (typerUsername: string | null) => {
+            if (socket && !sentTyping && typerUsername && currentRoomWith) {
+                socket.emit("typing", { status: "START", sender: typerUsername, receiver: currentRoomWith });
+                setSentTyping(true);
+            }
+            if (typingTimeout) {
+                setTimeout(() => {
+                    setSentTyping(false);
+                    setTypingTimeout(true);
+                    if (socket && typerUsername && currentRoomWith) {
+                        socket.emit("typing", { status: "END", sender: typerUsername, receiver: currentRoomWith });
+                    }
+                }, 1000);
+                setTypingTimeout(false);
+            }
+        };
         return (
             <div className="h-screen overflow-hidden">
                 <Setting
@@ -383,6 +435,7 @@ const MessengerPage = memo(
                                             onSeenFn={onSeen}
                                             reply={memoizedReply}
                                             setReply={setReply}
+                                            typing={typers.indexOf(currentRoomWith) !== -1}
                                         />
                                     ) : (
                                         <>
@@ -447,7 +500,10 @@ const MessengerPage = memo(
                                         className="resize-none placeholder:text-zinc-500 bg-zinc-900 text-[14px] outline-none py-[8px] h-full w-full"
                                         autoComplete="off"
                                         value={messageInput}
-                                        onChange={(e) => setMessageInput(e.target.value)}
+                                        onChange={(e) => {
+                                            sendTyping(username);
+                                            setMessageInput(e.target.value);
+                                        }}
                                         placeholder="Text Message"
                                         onKeyDown={(e) => {
                                             if (e.key === "Enter") {

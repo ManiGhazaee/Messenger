@@ -21,8 +21,6 @@ const LoginPage = ({
     };
     socket: Socket | null;
 }) => {
-    const [usernameOrEmail, setUsernameOrEmail] = useState("");
-    const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
     const [isLoading, setisLoading] = useState<boolean>(false);
     const [credentials, setCredentials] = useState<Credentials>({
@@ -49,6 +47,7 @@ const LoginPage = ({
                         window.location.reload();
                     } else {
                         setMessage(data.message);
+                        setisLoading(false);
                     }
                 }
             );
@@ -66,6 +65,7 @@ const LoginPage = ({
             }
         } catch (error) {
             console.error("login error", error);
+            setisLoading(false);
         }
     };
     return (

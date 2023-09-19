@@ -480,6 +480,10 @@ io.on("connection", (socket: Socket) => {
         }
     });
 
+    socket.on("typing", (data: { status: "START" | "END"; sender: string; receiver: string }) => {
+        socket.to(data.receiver).emit("typing", { status: data.status, sender: data.sender, receiver: data.receiver });
+    });
+
     socket.on("disconnect", () => {
         console.log("A user disconnected");
         if (room) {

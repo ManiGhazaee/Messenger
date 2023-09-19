@@ -69,7 +69,6 @@ const ChatMessage = memo(
 
         useEffect(() => {
             if (inView && selfUsername === message.receiver && !message.seen) {
-                console.log(message.content, "-------SEEN-------");
                 onSeenFn(chatIndex, message);
             }
         }, [inView, onSeenFn]);

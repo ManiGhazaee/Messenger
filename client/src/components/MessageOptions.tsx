@@ -16,7 +16,6 @@ const MessageOptions = memo(
         clickPoint: { x: number; y: number };
         items: ContextMenuItems;
     }) => {
-        console.log("-------------------------MessageOptions-------------------------");
         return (
             <>
                 {display &&

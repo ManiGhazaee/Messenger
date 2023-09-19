@@ -22,10 +22,6 @@ const SignupPage = ({
     };
     socket: Socket | null;
 }) => {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
     const [isLoading, setisLoading] = useState<boolean>(false);
     const [credentials, setCredentials] = useState<Credentials>({
@@ -83,6 +79,7 @@ const SignupPage = ({
             console.log(socket);
         } catch (error) {
             console.error("Sign-up failed:", error);
+            setisLoading(false);
         }
     };
     return (

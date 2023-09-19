@@ -15,6 +15,7 @@ const Chat = memo(
         onSeenFn,
         reply,
         setReply,
+        typing,
     }: {
         token: string | null;
         socket: Socket;
@@ -24,9 +25,8 @@ const Chat = memo(
         onSeenFn: (index: number, message: Message) => void;
         reply: MessageReply | null;
         setReply: Dispatch<SetStateAction<MessageReply | null>>;
+        typing: boolean;
     }) => {
-        console.log("-------------------------Chat-------------------------");
-
         const [autoScrollRef, autoScrollInView] = useInView({
             threshold: 0,
         });
@@ -173,6 +173,16 @@ const Chat = memo(
                             )}
                     </div>
 
+                    <div
+                        className={`${
+                            typing ? "h-[30px] opacity-100 py-[4px]" : "h-0 opacity-0 py-[0px]"
+                        } delay-300 px-[16px] py-[4px] text-zinc-600 font-bold ease-in-out w-full duration-150`}
+                    >
+                        Typing
+                        <span className="animate-pulse ">.</span>
+                        <span className="animate-pulse anim_delay_200">.</span>
+                        <span className="animate-pulse anim_delay_400">.</span>
+                    </div>
                     <p ref={autoScrollRef} id="auto-scroll" className="w-full z-[-10] absolute bottom-0 h-[10px]"></p>
                     <div
                         style={{
