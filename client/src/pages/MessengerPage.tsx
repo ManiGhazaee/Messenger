@@ -285,7 +285,6 @@ const MessengerPage = memo(
         }, [socket, memoizedToken, memoizedUsername, memoizedCurrentRoomWith]);
 
         useSocket(socket, "typing", (data: { status: "START" | "END"; sender: string; receiver: string }) => {
-            console.log("TYPING", data);
             if (data.status === "START") {
                 setTypers((prev) => {
                     if (prev.includes(data.sender)) {
@@ -343,7 +342,6 @@ const MessengerPage = memo(
                 socket.emit("onlineUsers", users);
             }
             const inter = setInterval(() => {
-                console.log("ONLINE USERS", users);
                 if (socket) {
                     socket.emit("onlineUsers", users);
                 }
@@ -438,6 +436,7 @@ const MessengerPage = memo(
                             chatUsername={memoizedChatUsername}
                             onlineUsers={onlineUsers}
                             chat={chat}
+                            typers={typers}
                         />
                         <div
                             id="chat"

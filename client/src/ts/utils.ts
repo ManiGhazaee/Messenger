@@ -6,34 +6,38 @@ export function addMessage(
     setChatStateFn: Dispatch<SetStateAction<TChat>>,
     message: Message
 ) {
-    if (!selfUsername) return;
+    try {
+        if (!selfUsername) return;
 
-    if (message.sender === selfUsername) {
-        setChatStateFn((prev) => {
-            let obj: TChat = { ...prev };
-            if (message.receiver in obj) {
-                if (obj[message.receiver][obj[message.receiver]?.length - 1]?.index !== message.index) {
-                    obj[message.receiver].push(message);
+        if (message.sender === selfUsername) {
+            setChatStateFn((prev) => {
+                let obj: TChat = { ...prev };
+                if (message.receiver in obj) {
+                    if (obj[message.receiver][obj[message.receiver]?.length - 1]?.index !== message.index) {
+                        obj[message.receiver].push(message);
+                    }
+                } else {
+                    obj[message.receiver] = [message];
                 }
-            } else {
-                obj[message.receiver] = [message];
-            }
-            return obj;
-        });
-    } else if (message.receiver === selfUsername) {
-        setChatStateFn((prev) => {
-            let obj: TChat = { ...prev };
-            if (message.sender in obj) {
-                if (obj[message.sender][obj[message.sender]?.length - 1]?.index !== message.index) {
-                    obj[message.sender].push(message);
+                return obj;
+            });
+        } else if (message.receiver === selfUsername) {
+            setChatStateFn((prev) => {
+                let obj: TChat = { ...prev };
+                if (message.sender in obj) {
+                    if (obj[message.sender][obj[message.sender]?.length - 1]?.index !== message.index) {
+                        obj[message.sender].push(message);
+                    }
+                } else {
+                    obj[message.sender] = [message];
                 }
-            } else {
-                obj[message.sender] = [message];
-            }
-            return obj;
-        });
-    } else {
-        console.log("WTF?");
+                return obj;
+            });
+        } else {
+            console.log("WTF?");
+        }
+    } catch (e) {
+        console.error(e);
     }
 }
 
@@ -42,20 +46,24 @@ export function setMessageStatusToSuccess(
     setChatStateFn: Dispatch<SetStateAction<TChat>>,
     message: Message
 ) {
-    if (!selfUsername) return;
+    try {
+        if (!selfUsername) return;
 
-    if (message.sender === selfUsername) {
-        setChatStateFn((prev) => {
-            let obj: TChat = { ...prev };
-            if (message.receiver in obj) {
-                for (let i = obj[message.receiver].length - 1; i >= 0; i--) {
-                    if (obj[message.receiver][i]?.index === message.index) {
-                        obj[message.receiver][i].status = "SUCCESS";
+        if (message.sender === selfUsername) {
+            setChatStateFn((prev) => {
+                let obj: TChat = { ...prev };
+                if (message.receiver in obj) {
+                    for (let i = obj[message.receiver].length - 1; i >= 0; i--) {
+                        if (obj[message.receiver][i]?.index === message.index) {
+                            obj[message.receiver][i].status = "SUCCESS";
+                        }
                     }
                 }
-            }
-            return obj;
-        });
+                return obj;
+            });
+        }
+    } catch (e) {
+        console.error(e);
     }
 }
 
@@ -65,26 +73,30 @@ export function deleteMessagesFor(
     sender: string,
     receiver: string
 ) {
-    if (!selfUsername) return;
+    try {
+        if (!selfUsername) return;
 
-    if (sender === selfUsername) {
-        setChatStateFn((prev) => {
-            let obj: TChat = { ...prev };
-            if (receiver in obj) {
-                delete obj[receiver];
-            }
-            return obj;
-        });
-    } else if (receiver === selfUsername) {
-        setChatStateFn((prev) => {
-            let obj: TChat = { ...prev };
-            if (sender in obj) {
-                delete obj[sender];
-            }
-            return obj;
-        });
-    } else {
-        console.log("WTF?");
+        if (sender === selfUsername) {
+            setChatStateFn((prev) => {
+                let obj: TChat = { ...prev };
+                if (receiver in obj) {
+                    delete obj[receiver];
+                }
+                return obj;
+            });
+        } else if (receiver === selfUsername) {
+            setChatStateFn((prev) => {
+                let obj: TChat = { ...prev };
+                if (sender in obj) {
+                    delete obj[sender];
+                }
+                return obj;
+            });
+        } else {
+            console.log("WTF?");
+        }
+    } catch (e) {
+        console.error(e);
     }
 }
 
@@ -100,32 +112,36 @@ export function setMessageSeen(
     setChatStateFn: Dispatch<SetStateAction<TChat>>,
     message: Message
 ) {
-    setChatStateFn((prev) => {
-        let obj = { ...prev };
-        let firstSeenIndex: number | null = null;
+    try {
+        setChatStateFn((prev) => {
+            let obj = { ...prev };
+            let firstSeenIndex: number | null = null;
 
-        if (obj && currentRoomWith && obj[currentRoomWith]) {
-            for (let i = obj[currentRoomWith].length - 1; i >= 0; i--) {
-                if (obj[currentRoomWith][i].index === message.index) {
-                    obj[currentRoomWith][i].seen = true;
-                    firstSeenIndex = i;
-                    break;
-                }
-            }
-        }
-
-        if (firstSeenIndex !== null) {
             if (obj && currentRoomWith && obj[currentRoomWith]) {
-                for (let i = firstSeenIndex; i >= 0; i--) {
-                    if (obj[currentRoomWith][i] && obj[currentRoomWith][i].seen) {
+                for (let i = obj[currentRoomWith].length - 1; i >= 0; i--) {
+                    if (obj[currentRoomWith][i].index === message.index) {
                         obj[currentRoomWith][i].seen = true;
+                        firstSeenIndex = i;
+                        break;
                     }
                 }
             }
-        }
 
-        return obj;
-    });
+            if (firstSeenIndex !== null) {
+                if (obj && currentRoomWith && obj[currentRoomWith]) {
+                    for (let i = firstSeenIndex; i >= 0; i--) {
+                        if (obj[currentRoomWith][i] && obj[currentRoomWith][i].seen) {
+                            obj[currentRoomWith][i].seen = true;
+                        }
+                    }
+                }
+            }
+
+            return obj;
+        });
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 export function deleteMessage(
@@ -133,15 +149,23 @@ export function deleteMessage(
     setChatStateFn: Dispatch<SetStateAction<TChat>>,
     message: Message
 ) {
-    const chattingWith = message.sender === selfUsername ? message.receiver : message.sender;
-    setChatStateFn((prev) => {
-        let obj = { ...prev };
-        for (let i = 0; i < obj[chattingWith].length; i++) {
-            if (obj[chattingWith][i]?.index === message.index) {
-                delete obj[chattingWith][i];
-                break;
-            }
+    try {
+        const chattingWith = message.sender === selfUsername ? message.receiver : message.sender;
+        if (chattingWith) {
+            setChatStateFn((prev) => {
+                let obj = { ...prev };
+                if (obj && chattingWith in obj && obj[chattingWith]) {
+                    for (let i = 0; i < obj[chattingWith].length; i++) {
+                        if (obj[chattingWith][i]?.index === message.index) {
+                            delete obj[chattingWith][i];
+                            break;
+                        }
+                    }
+                }
+                return obj;
+            });
         }
-        return obj;
-    });
+    } catch (e) {
+        console.error(e);
+    }
 }

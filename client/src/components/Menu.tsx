@@ -11,6 +11,7 @@ const Menu = memo(
         chatUsername,
         onlineUsers,
         chat,
+        typers,
     }: {
         menu: User | null;
         state: "chat" | "menu";
@@ -18,6 +19,7 @@ const Menu = memo(
         chatUsername: string | null;
         onlineUsers: Record<string, boolean>;
         chat: TChat;
+        typers: string[];
     }) => {
         let notSeenCountOfUsers: number[] = [];
 
@@ -88,17 +90,35 @@ const Menu = memo(
                                     style={{
                                         opacity: elem.username in onlineUsers && onlineUsers[elem.username] ? "1" : "0",
                                     }}
-                                    className="w-[14px] aspect-square bg-blue-500 rounded-full absolute bottom-0 right-0 border-[2px] border-zinc-900 group-hover:border-zinc-400 duration-200"
+                                    className="w-[14px] aspect-square bg-blue-500 rounded-full absolute bottom-0 right-0 border-[2px] border-zinc-900 group-hover:border-zinc-400 group-hover:bg-black duration-200"
                                 ></div>
                             </div>
                             <div className="flex flex-col relative w-full">
                                 <div className="text-[18px] mt-[6px] ml-[10px] font-semibold group-hover:text-black duration-200">
                                     {elem.username}
                                 </div>
-                                <div className="text-[14px] text-zinc-500 mt-[0px] ml-[10px] max-w-[50%] overflow-hidden group-hover:text-black duration-200">
-                                    {lastMessageOfUsers[index].content.length > 25
-                                        ? lastMessageOfUsers[index].content.slice(0, 25) + "..."
-                                        : lastMessageOfUsers[index].content}
+                                <div className="relative">
+                                    <div
+                                        style={{
+                                            opacity: typers.includes(elem.username) ? "0" : "1",
+                                        }}
+                                        className="relative text-[14px] text-zinc-500 mt-[0px] ml-[10px] max-w-[50%] overflow-hidden group-hover:text-black menu_message_transition"
+                                    >
+                                        {lastMessageOfUsers[index].content.length > 25
+                                            ? lastMessageOfUsers[index].content.slice(0, 25) + "..."
+                                            : lastMessageOfUsers[index].content}
+                                    </div>
+                                    <div
+                                        style={{
+                                            opacity: typers.includes(elem.username) ? "1" : "0",
+                                        }}
+                                        className="absolute h-fit delay-300 bg-zinc-900 top-0 left-0 text-[14px] group-hover:bg-zinc-400 duration-200 group-hover:text-black w-[55%] pl-[8px] text-blue-400"
+                                    >
+                                        Typing
+                                        <span className="animate-pulse ">.</span>
+                                        <span className="animate-pulse anim_delay_200">.</span>
+                                        <span className="animate-pulse anim_delay_400">.</span>
+                                    </div>
                                 </div>
 
                                 <div className="ml-[0px] h-[20px] absolute bottom-[8px] text-zinc-500 group-hover:text-black duration-200 right-[8px] inline-block w-[72px] text-right">

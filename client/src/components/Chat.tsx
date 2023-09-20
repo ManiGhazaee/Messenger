@@ -174,11 +174,6 @@ const Chat = memo(
                     </div>
 
                     <div
-                        // style={{
-                        //     height: typing ? "30px" : "0px",
-                        //     opacity: typing ? "1" : "0",
-                        //     padding: typing ? "4px 16px" : "0px 16px",
-                        // }}
                         className={`${
                             typing ? "h-[30px] opacity-100 py-[4px]" : "h-0 opacity-0 py-[0px]"
                         } delay-300 px-[16px] text-zinc-600 font-bold ease-in-out w-full duration-150`}

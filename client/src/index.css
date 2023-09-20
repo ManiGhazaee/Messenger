@@ -399,3 +399,8 @@ html {
 .anim_delay_700 {
     animation-delay: 700ms;
 }
+
+.menu_message_transition {
+    transition: color 200ms, opacity 200ms 300ms;
+}
+
