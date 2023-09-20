@@ -8,11 +8,13 @@ const Menu = memo(
         state,
         userOnClick,
         chatUsername,
+        onlineUsers,
     }: {
         menu: User | null;
         state: "chat" | "menu";
         userOnClick: (username: string) => void;
         chatUsername: string | null;
+        onlineUsers: Record<string, boolean>;
     }) => {
         console.log("menu", menu);
         return (
@@ -34,9 +36,16 @@ const Menu = memo(
                                     height: elem.username === chatUsername ? "70%" : "0px",
                                     opacity: elem.username === chatUsername ? "1" : "0",
                                 }}
-                                className="w-[6px] duration-150 bg-blue-500 group-hover:bg-black rounded-full absolute top-1/2 -translate-y-1/2 left-[4px]"
+                                className="w-[6px] duration-150 bg-blue-500 group-hover:bg-black rounded-full absolute top-1/2 -translate-y-1/2 left-[4px] "
                             ></div>
-                            <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-zinc-800"></div>
+                            <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-zinc-800 relative">
+                                <div
+                                    style={{
+                                        opacity: elem.username in onlineUsers && onlineUsers[elem.username] ? "1" : "0",
+                                    }}
+                                    className="w-[14px] aspect-square bg-blue-500 rounded-full absolute bottom-0 right-0 border-[2px] border-zinc-900 group-hover:border-zinc-400 duration-200"
+                                ></div>
+                            </div>
                             <div className="flex flex-col relative w-full">
                                 <div className="text-[18px] mt-[6px] ml-[10px] font-semibold group-hover:text-black duration-200">
                                     {elem.username}

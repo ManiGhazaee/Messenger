@@ -52,6 +52,7 @@ const MessengerPage = memo(
         const [sentTyping, setSentTyping] = useState<boolean>(false);
         const [typingTimeout, setTypingTimeout] = useState<boolean>(true);
         const [typers, setTypers] = useState<string[]>([]);
+        const [onlineUsers, setOnlineUsers] = useState<Record<string, boolean>>({});
 
         const navigate = useNavigate();
 
@@ -230,6 +231,7 @@ const MessengerPage = memo(
         const onSeen = (index: number, message: Message) => {
             if (message.seen) return;
             let is_last = false;
+
             if (currentRoomWith && chat[currentRoomWith].length - 1 === index) is_last = true;
 
             if (socket) {
@@ -322,6 +324,30 @@ const MessengerPage = memo(
                 setTypingTimeout(false);
             }
         };
+
+        useSocket(socket, "onlineUsers", (data: { [key: string]: boolean }) => {
+            setOnlineUsers(data);
+        });
+
+        useEffect(() => {
+            if (!menu) return;
+
+            let users: Record<string, boolean> = {};
+            for (const i of menu.rooms) {
+                users[i.username] = false;
+            }
+            if (socket) {
+                socket.emit("onlineUsers", users);
+            }
+            const inter = setInterval(() => {
+                console.log(users);
+                if (socket) {
+                    socket.emit("onlineUsers", users);
+                }
+            }, 20000);
+            return () => clearInterval(inter);
+        }, [menu]);
+
         return (
             <div className="h-screen overflow-hidden">
                 <Setting
@@ -406,6 +432,7 @@ const MessengerPage = memo(
                             state={state}
                             userOnClick={userOnClick}
                             chatUsername={memoizedChatUsername}
+                            onlineUsers={onlineUsers}
                         />
                         <div
                             id="chat"

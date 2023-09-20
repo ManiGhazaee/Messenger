@@ -17,7 +17,7 @@ import {
 } from "./functions/account";
 import mongoose from "mongoose";
 import { auth } from "./functions/auth";
-import RoomModel from "./models/room";
+import RoomModel, { message } from "./models/room";
 import UserModel from "./models/user";
 require("dotenv").config();
 
@@ -148,6 +148,14 @@ io.on("connection", (socket: Socket) => {
 
             socket.to(data.message.sender).emit("seen", { message: data.message });
 
+            await RoomModel.findOneAndUpdate(
+                { participants: { $all: [message.sender, message.receiver] } },
+                { $set: { "messages.$[elem].seen": true } },
+                {
+                    arrayFilters: [{ "elem.index": data.index }],
+                }
+            );
+
             const [sender, receiver] = await Promise.all([
                 userByName(data.message.sender),
                 userByName(data.message.receiver),
@@ -182,11 +190,11 @@ io.on("connection", (socket: Socket) => {
 
             await room.save();
 
-            await setNotSeenForUsers(data.message.sender, data.message.receiver);
-
             if (data.is_last) {
                 await addLastMessageToRoom(sender, receiver, data.message, roomId);
             }
+
+            await setNotSeenForUsers(data.message.sender, data.message.receiver);
 
             const newSender = await userByName(data.message.sender);
             if (newSender) {
@@ -482,6 +490,18 @@ io.on("connection", (socket: Socket) => {
 
     socket.on("typing", (data: { status: "START" | "END"; sender: string; receiver: string }) => {
         socket.to(data.receiver).emit("typing", { status: data.status, sender: data.sender, receiver: data.receiver });
+    });
+
+    socket.on("onlineUsers", async (data: { [key: string]: boolean }) => {
+        let userRoomLength;
+        for (const key in data) {
+            userRoomLength = (await io.in(key).fetchSockets()).length;
+            if (userRoomLength !== 0) {
+                data[key] = true;
+            }
+        }
+
+        socket.emit("onlineUsers", data);
     });
 
     socket.on("disconnect", () => {

@@ -38,7 +38,7 @@ const Nav = memo(
                         <MenuRoundedIcon style={iconStyle} />
                     )}
                 </div>
-                <div className="text-[18px] font-bold ml-4 flex flex-row">
+                <div className="text-[20px] font-bold ml-4 flex flex-row">
                     {chatUsername ? (
                         <div className="md:hidden h-[33px] mt-[-2px] mr-[18px] aspect-square rounded-full bg-zinc-800"></div>
                     ) : (

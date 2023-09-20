@@ -115,8 +115,12 @@ export function setMessageSeen(
         }
 
         if (firstSeenIndex !== null) {
-            for (let i = firstSeenIndex; i >= 0; i--) {
-                obj[currentRoomWith][i].seen = true;
+            if (obj && currentRoomWith && obj[currentRoomWith]) {
+                for (let i = firstSeenIndex; i >= 0; i--) {
+                    if (obj[currentRoomWith][i] && obj[currentRoomWith][i].seen) {
+                        obj[currentRoomWith][i].seen = true;
+                    }
+                }
             }
         }
 
