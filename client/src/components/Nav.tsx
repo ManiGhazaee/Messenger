@@ -5,6 +5,7 @@ import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { ChatState } from "./MessageOptions";
+import { ConnectionStatus } from "../App";
 
 const Nav = memo(
     ({
@@ -14,6 +15,7 @@ const Nav = memo(
         searchState,
         setSearchState,
         chatMoreOnClick,
+        connectionStatus,
     }: {
         moreOnClick: (state: ChatState) => void;
         state: "chat" | "menu";
@@ -21,8 +23,22 @@ const Nav = memo(
         searchState: boolean;
         setSearchState: Dispatch<SetStateAction<boolean>>;
         chatMoreOnClick: (...args: any[]) => void;
+        connectionStatus: ConnectionStatus;
     }) => {
         const iconStyle = useMemo(() => ({ width: "27px", height: "27px" }), []);
+
+        let navTitle: string;
+
+        if (connectionStatus !== "connected") {
+            navTitle = "Connecting...";
+        } else {
+            if (chatUsername) {
+                navTitle = chatUsername;
+            } else {
+                navTitle = "Messenger";
+            }
+        }
+
         return (
             <div
                 id="nav"
@@ -44,7 +60,7 @@ const Nav = memo(
                     ) : (
                         <></>
                     )}
-                    {chatUsername ? chatUsername : "Messenger"}
+                    {navTitle}
                 </div>
                 {state === "menu" && (
                     <div

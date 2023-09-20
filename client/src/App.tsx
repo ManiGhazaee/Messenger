@@ -100,6 +100,7 @@ function App() {
                 element={
                     <MessengerPage
                         socket={memoizedSocket}
+                        connectionStatus={connectionStatus}
                         menu={memoizedMenu}
                         token={memoizedToken}
                         username={memoizedUsername}

@@ -16,6 +16,7 @@ import RestoreRoundedIcon from "@mui/icons-material/RestoreRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import ReplyRoundedIcon from "@mui/icons-material/ReplyRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import { ConnectionStatus } from "../App";
 
 export type TChat = {
     [key: string]: Message[];
@@ -24,11 +25,13 @@ export type TChat = {
 const MessengerPage = memo(
     ({
         socket,
+        connectionStatus,
         menu,
         username,
         token,
     }: {
         socket: Socket | null;
+        connectionStatus: ConnectionStatus;
         menu: User | null;
         username: string | null;
         token: string | null;
@@ -340,7 +343,7 @@ const MessengerPage = memo(
                 socket.emit("onlineUsers", users);
             }
             const inter = setInterval(() => {
-                console.log(users);
+                console.log("ONLINE USERS", users);
                 if (socket) {
                     socket.emit("onlineUsers", users);
                 }
@@ -362,6 +365,7 @@ const MessengerPage = memo(
                     state={memoizedState}
                     chatUsername={memoizedChatUsername}
                     chatMoreOnClick={chatMoreOnClick}
+                    connectionStatus={connectionStatus}
                 />
                 <MoreOptions
                     items={useMemo(
