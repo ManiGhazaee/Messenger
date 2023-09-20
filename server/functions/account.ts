@@ -374,7 +374,6 @@ export async function setNotSeenForUsers(sender: string, receiver: string) {
     });
 
     let notSeenCount = 0;
-    let lastReceiver = room?.messages[0].receiver || receiver;
 
     if (room) {
         for (let i = 0; i < room.messages.length; i++) {
@@ -394,7 +393,7 @@ export async function setNotSeenForUsers(sender: string, receiver: string) {
             ),
 
             UserModel.findOneAndUpdate(
-                { username: lastReceiver },
+                { username: receiver },
                 { $set: { "rooms.$[elem].not_seen_count": notSeenCount } },
                 {
                     arrayFilters: [{ "elem.id": room._id.toString() }],

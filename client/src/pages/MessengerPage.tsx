@@ -433,6 +433,7 @@ const MessengerPage = memo(
                             userOnClick={userOnClick}
                             chatUsername={memoizedChatUsername}
                             onlineUsers={onlineUsers}
+                            chat={chat}
                         />
                         <div
                             id="chat"

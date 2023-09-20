@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import Loading from "./Loading";
 import { hoursAndMinutes } from "../ts/utils";
+import { TChat } from "../pages/MessengerPage";
 
 const Menu = memo(
     ({
@@ -9,14 +10,58 @@ const Menu = memo(
         userOnClick,
         chatUsername,
         onlineUsers,
+        chat,
     }: {
         menu: User | null;
         state: "chat" | "menu";
         userOnClick: (username: string) => void;
         chatUsername: string | null;
         onlineUsers: Record<string, boolean>;
+        chat: TChat;
     }) => {
-        console.log("menu", menu);
+        let notSeenCountOfUsers: number[] = [];
+
+        if (menu && "rooms" in menu && menu.rooms.length !== 0) {
+            for (let i = 0; i < menu.rooms.length; i++) {
+                const elemUsername: string = menu.rooms[i].username;
+
+                if (chat && elemUsername in chat && chat[elemUsername].length !== 0) {
+                    const chatWithLength = chat[elemUsername].length;
+                    let firstSeenIndex = chatWithLength;
+
+                    if (chat[elemUsername][chatWithLength - 1].sender !== elemUsername) {
+                        notSeenCountOfUsers[i] = 0;
+                        continue;
+                    }
+
+                    for (let j = chatWithLength - 1; j >= 0; j--) {
+                        if (chat[elemUsername][j]?.seen) {
+                            firstSeenIndex = chatWithLength - j - 1;
+                            break;
+                        }
+                    }
+
+                    notSeenCountOfUsers[i] = firstSeenIndex;
+                } else {
+                    notSeenCountOfUsers[i] = menu.rooms[i].not_seen_count;
+                }
+            }
+        }
+
+        let lastMessageOfUsers: Message[] = [];
+
+        if (menu && "rooms" in menu && menu.rooms.length !== 0) {
+            for (let i = 0; i < menu.rooms.length; i++) {
+                const elemUsername: string = menu.rooms[i].username;
+
+                if (chat && elemUsername in chat && chat[elemUsername].length !== 0) {
+                    lastMessageOfUsers[i] = chat[elemUsername][chat[elemUsername].length - 1];
+                } else {
+                    lastMessageOfUsers[i] = menu.rooms[i].last_message;
+                }
+            }
+        }
+
         return (
             <div
                 id="menu"
@@ -51,27 +96,27 @@ const Menu = memo(
                                     {elem.username}
                                 </div>
                                 <div className="text-[14px] text-zinc-500 mt-[0px] ml-[10px] max-w-[50%] overflow-hidden group-hover:text-black duration-200">
-                                    {elem.last_message.content.length > 25
-                                        ? elem.last_message.content.slice(0, 25) + "..."
-                                        : elem.last_message.content}
+                                    {lastMessageOfUsers[index].content.length > 25
+                                        ? lastMessageOfUsers[index].content.slice(0, 25) + "..."
+                                        : lastMessageOfUsers[index].content}
                                 </div>
 
                                 <div className="ml-[0px] h-[20px] absolute bottom-[8px] text-zinc-500 group-hover:text-black duration-200 right-[8px] inline-block w-[72px] text-right">
                                     <div className="inline-block text-right mr-[8px] text-[12px] relative top-[-1px] w-fit">
-                                        {hoursAndMinutes(elem.last_message.time)}
+                                        {hoursAndMinutes(lastMessageOfUsers[index].time)}
                                     </div>
 
-                                    {elem.username === elem.last_message.receiver &&
-                                        (elem.last_message.seen ? (
+                                    {elem.username === lastMessageOfUsers[index].receiver &&
+                                        (lastMessageOfUsers[index].seen ? (
                                             <i className="bi bi-check2-all mr-[8px]"></i>
                                         ) : (
                                             <i className="bi bi-check2 mr-[8px]"></i>
                                         ))}
                                 </div>
 
-                                {elem.not_seen_count > 0 && (
-                                    <div className="absolute bg-white font-bold rounded-full h-fit px-[2px] py-[3px] group-hover:bg-black group-hover:text-white duration-200 min-w-[23px] text-center text-black text-[12px] right-[14px] top-[8px] ">
-                                        {elem.not_seen_count}
+                                {notSeenCountOfUsers[index] > 0 && (
+                                    <div className="absolute scale_opacity_anim_300 anim_delay_500 bg-white font-bold rounded-full h-fit px-[2px] py-[3px] group-hover:bg-black group-hover:text-white duration-200 min-w-[23px] text-center text-black text-[12px] right-[14px] top-[8px] ">
+                                        {notSeenCountOfUsers[index]}
                                     </div>
                                 )}
                             </div>

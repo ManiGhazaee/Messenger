@@ -195,22 +195,6 @@ io.on("connection", (socket: Socket) => {
             }
 
             await setNotSeenForUsers(data.message.sender, data.message.receiver);
-
-            const newSender = await userByName(data.message.sender);
-            if (newSender) {
-                socket.to(newSender._id.toString()).emit("menu", {
-                    user: newSender,
-                    success: true,
-                });
-            }
-
-            const newReceiver = await userByName(data.message.receiver);
-            if (newReceiver) {
-                socket.emit("menu", {
-                    user: newReceiver,
-                    success: true,
-                });
-            }
         } catch (e) {
             console.log("seen error", e);
         }
@@ -296,22 +280,6 @@ io.on("connection", (socket: Socket) => {
                     await addLastMessageToRoom(sender, receiver, message, roomId);
 
                     await setNotSeenForUsers(data.sender, data.receiver);
-
-                    const [newSender, newReceiver] = await Promise.all([
-                        userByName(data.sender),
-                        userByName(data.receiver),
-                    ]);
-
-                    if (newReceiver && newSender) {
-                        socket.to(newReceiver._id.toString()).emit("menu", {
-                            user: newReceiver,
-                            success: true,
-                        });
-                        socket.emit("menu", {
-                            user: newSender,
-                            success: true,
-                        });
-                    }
                 } else {
                     await createRoom(sender, receiver, message, 2);
 
