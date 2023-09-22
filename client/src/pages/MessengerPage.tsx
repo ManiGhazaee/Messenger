@@ -117,6 +117,11 @@ const MessengerPage = memo(
                         addMessage(username, setChat, data.messages[i]);
                     }
                 }
+
+                const chatMessagesCont = document.getElementById("chat-messages");
+                if (chatMessagesCont && chatMessagesCont.children.length > 0) {
+                    chatMessagesCont.children[chatMessagesCont.children.length - 1].scrollIntoView();
+                }
             }
         );
 
@@ -358,7 +363,7 @@ const MessengerPage = memo(
 
             setChat((prev) => {
                 let _prev = { ...prev };
-                _prev[chatWith].unshift(...data.messages);
+                _prev[chatWith]?.unshift(...data.messages);
                 return _prev;
             });
 
@@ -390,6 +395,7 @@ const MessengerPage = memo(
                     chatUsername={memoizedChatUsername}
                     chatMoreOnClick={chatMoreOnClick}
                     connectionStatus={connectionStatus}
+                    onlineStatus={onlineUsers[memoizedChatUsername ?? ""] ?? false}
                 />
                 <MoreOptions
                     items={useMemo(
@@ -463,12 +469,14 @@ const MessengerPage = memo(
                             onlineUsers={onlineUsers}
                             chat={chat}
                             typers={typers}
+                            setClearHistoryConfirmModal={setClearHistoryConfirmModal}
+                            setDeleteChatConfirmModal={setDeleteChatConfirmModal}
                         />
                         <div
                             id="chat"
                             className={`${
                                 state === "chat" ? "w-full" : "w-0"
-                            } flex-grow bg-black h-auto overflow-hidden duration-200 relative`}
+                            } flex-grow bg-black overflow-hidden duration-200 relative`}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                     sendPrivateMessage();
@@ -479,7 +487,7 @@ const MessengerPage = memo(
                             {chat && state === "chat" && (
                                 <div
                                     id="chat-scrollable"
-                                    className={`h-[calc(100%-46px)] overflow-y-scroll relative flex flex-col-reverse`}
+                                    className={`h-[calc(100%-46px)] overflow-y-scroll relative flex flex-col-reverse fade_in_anim`}
                                     ref={chatRef}
                                 >
                                     {currentRoomWith in chat && chat[currentRoomWith].length !== 0 && socket ? (

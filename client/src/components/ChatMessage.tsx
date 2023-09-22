@@ -172,7 +172,7 @@ const ChatMessage = memo(
                             <div
                                 className={`message relative w-fit px-3 ${
                                     messageMoreOptionsDisplay ? "bg-blue-400" : "bg-blue-700"
-                                }  rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
+                                }  rounded-2xl py-1 my-[2px] break-words `}
                             >
                                 <div
                                     className="group-hover:opacity-100 opacity-0 duration-150 hover:bg-opacity-100 w-[30px] hidden sm:block rounded-full aspect-square bg-zinc-800 hover:text-blue-500 text-zinc-500 bg-opacity-60 border border-zinc-800 absolute left-[-34px] bottom-[0px] hover:cursor-pointer"
@@ -248,7 +248,7 @@ const ChatMessage = memo(
                             <div
                                 className={`message relative w-fit px-3 ${
                                     messageMoreOptionsDisplay ? "bg-zinc-800" : "bg-zinc-900"
-                                }  border border-zinc-800 rounded-2xl py-1 my-[2px] break-words background_color_duration_300`}
+                                }  border border-zinc-800 rounded-2xl py-1 my-[2px] break-words `}
                             >
                                 <div
                                     className="group-hover:opacity-100 opacity-0 duration-150 hover:bg-opacity-100 w-[30px] hidden sm:block rounded-full aspect-square bg-zinc-800 hover:text-blue-500 text-zinc-500 bg-opacity-60 border border-zinc-800 absolute right-[-34px] bottom-[0px] hover:cursor-pointer"

@@ -1,7 +1,8 @@
-import React, { memo } from "react";
+import React, { Dispatch, SetStateAction, memo, useCallback } from "react";
 import Loading from "./Loading";
 import { hoursAndMinutes } from "../ts/utils";
 import { TChat } from "../pages/MessengerPage";
+import MenuItem from "./MenuItem";
 
 const Menu = memo(
     ({
@@ -12,6 +13,8 @@ const Menu = memo(
         onlineUsers,
         chat,
         typers,
+        setClearHistoryConfirmModal,
+        setDeleteChatConfirmModal,
     }: {
         menu: User | null;
         state: "chat" | "menu";
@@ -20,6 +23,8 @@ const Menu = memo(
         onlineUsers: Record<string, boolean>;
         chat: TChat;
         typers: string[];
+        setClearHistoryConfirmModal: Dispatch<SetStateAction<boolean>>;
+        setDeleteChatConfirmModal: Dispatch<SetStateAction<boolean>>;
     }) => {
         let notSeenCountOfUsers: number[] = [];
 
@@ -64,6 +69,28 @@ const Menu = memo(
             }
         }
 
+        const menuContextOnClick = useCallback((ev: React.MouseEvent<HTMLDivElement>) => {
+            const chatCont = document.getElementById("menu")!;
+            const rect = chatCont.getBoundingClientRect();
+
+            const chatWidth = chatCont.offsetWidth;
+            const chatHeight = chatCont.offsetHeight;
+
+            const chatOffsetTop = rect.top + window.scrollY;
+            const chatOffsetLeft = rect.left + window.scrollX;
+
+            let x = ev.clientX;
+            let y = ev.clientY;
+
+            if (ev.clientX > chatWidth / 2 + chatOffsetLeft) {
+                x = ev.clientX - 180;
+            }
+            if (ev.clientY > chatHeight / 2 + chatOffsetTop) {
+                y = ev.clientY - 2 * 38 - 8;
+            }
+            return { x, y };
+        }, []);
+
         return (
             <div
                 id="menu"
@@ -72,76 +99,23 @@ const Menu = memo(
                 } relative sm:w-[400px] bg-zinc-900 md:border-r md:border-r-zinc-800 h-full duration-200 overflow-y-scroll sm:rounded-xl sm:border sm:border-zinc-800 sm:py-[4px] sm:pl-[4px] sm:pr-[2px] sm:top-[4px] sm:h-[calc(100%-8px)]`}
             >
                 {menu && "rooms" in menu && menu.rooms.length !== 0 ? (
-                    menu.rooms.map((elem, index) => (
-                        <div
-                            className="scale_opacity_anim_300 h-[60px] flex flex-row w-[100%] hover:bg-zinc-400 border-borders group cursor-pointer duration-200 overflow-hidden rounded-lg"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                            onClick={() => userOnClick(elem.username)}
-                        >
-                            <div
-                                style={{
-                                    height: elem.username === chatUsername ? "70%" : "0px",
-                                    opacity: elem.username === chatUsername ? "1" : "0",
-                                }}
-                                className="w-[6px] duration-150 bg-blue-500 group-hover:bg-black rounded-full absolute top-1/2 -translate-y-1/2 left-[4px] "
-                            ></div>
-                            <div className="h-3/4 my-[7px] mr-[7px] ml-[18px] aspect-square rounded-full bg-zinc-800 relative">
-                                <div
-                                    style={{
-                                        opacity: elem.username in onlineUsers && onlineUsers[elem.username] ? "1" : "0",
-                                    }}
-                                    className="w-[14px] aspect-square bg-blue-500 rounded-full absolute bottom-0 right-0 border-[2px] border-zinc-900 group-hover:border-zinc-400 group-hover:bg-black duration-200"
-                                ></div>
-                            </div>
-                            <div className="flex flex-col relative w-full">
-                                <div className="text-[18px] mt-[6px] ml-[10px] font-semibold group-hover:text-black duration-200">
-                                    {elem.username}
-                                </div>
-                                <div className="relative">
-                                    <div
-                                        style={{
-                                            opacity: typers.includes(elem.username) ? "0" : "1",
-                                        }}
-                                        className="relative text-[14px] text-zinc-500 mt-[0px] ml-[10px] max-w-[50%] overflow-hidden group-hover:text-black menu_message_transition"
-                                    >
-                                        {lastMessageOfUsers[index].content.length > 25
-                                            ? lastMessageOfUsers[index].content.slice(0, 25) + "..."
-                                            : lastMessageOfUsers[index].content}
-                                    </div>
-                                    <div
-                                        style={{
-                                            opacity: typers.includes(elem.username) ? "1" : "0",
-                                        }}
-                                        className="absolute h-fit delay-300 bg-zinc-900 top-0 left-0 text-[14px] group-hover:bg-zinc-400 duration-200 group-hover:text-black w-[55%] pl-[8px] text-blue-400"
-                                    >
-                                        Typing
-                                        <span className="animate-pulse ">.</span>
-                                        <span className="animate-pulse anim_delay_200">.</span>
-                                        <span className="animate-pulse anim_delay_400">.</span>
-                                    </div>
-                                </div>
-
-                                <div className="ml-[0px] h-[20px] absolute bottom-[8px] text-zinc-500 group-hover:text-black duration-200 right-[8px] inline-block w-[72px] text-right">
-                                    <div className="inline-block text-right mr-[8px] text-[12px] relative top-[-1px] w-fit">
-                                        {hoursAndMinutes(lastMessageOfUsers[index].time)}
-                                    </div>
-
-                                    {elem.username === lastMessageOfUsers[index].receiver &&
-                                        (lastMessageOfUsers[index].seen ? (
-                                            <i className="bi bi-check2-all mr-[8px]"></i>
-                                        ) : (
-                                            <i className="bi bi-check2 mr-[8px]"></i>
-                                        ))}
-                                </div>
-
-                                {notSeenCountOfUsers[index] > 0 && (
-                                    <div className="absolute scale_opacity_anim_300 anim_delay_500 bg-white font-bold rounded-full h-fit px-[2px] py-[3px] group-hover:bg-black group-hover:text-white duration-200 min-w-[23px] text-center text-black text-[12px] right-[14px] top-[8px] ">
-                                        {notSeenCountOfUsers[index]}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))
+                    menu.rooms.map((elem, index) => {
+                        return (
+                            <MenuItem
+                                index={index}
+                                chatUsername={chatUsername}
+                                userOnClick={userOnClick}
+                                elem={elem}
+                                onlineUsers={onlineUsers}
+                                typers={typers}
+                                lastMessageOfUsers={lastMessageOfUsers}
+                                notSeenCountOfUsers={notSeenCountOfUsers}
+                                menuContextOnClick={menuContextOnClick}
+                                setClearHistoryConfirmModal={setClearHistoryConfirmModal}
+                                setDeleteChatConfirmModal={setDeleteChatConfirmModal}
+                            />
+                        );
+                    })
                 ) : menu === null ? (
                     <div
                         key="menu-loading"

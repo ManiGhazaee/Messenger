@@ -44,7 +44,7 @@ const Setting = memo(
                         width: settingState ? "300px" : "0px",
                         opacity: settingState ? "1" : "0",
                     }}
-                    className="fixed left-0 z-[120] top-0 rounded-r-lg bg-opacity-60 backdrop-blur-md bg-zinc-900 duration-300 h-screen overflow-hidden"
+                    className="fixed left-0 z-[120] top-0 border-r border-r-zinc-800 rounded-r-lg bg-opacity-60 backdrop-blur-md bg-zinc-900 duration-300 h-screen overflow-hidden"
                 >
                     <div className="relative">
                         {settingState && (

@@ -16,6 +16,7 @@ const Nav = memo(
         setSearchState,
         chatMoreOnClick,
         connectionStatus,
+        onlineStatus,
     }: {
         moreOnClick: (state: ChatState) => void;
         state: "chat" | "menu";
@@ -24,6 +25,7 @@ const Nav = memo(
         setSearchState: Dispatch<SetStateAction<boolean>>;
         chatMoreOnClick: (...args: any[]) => void;
         connectionStatus: ConnectionStatus;
+        onlineStatus: boolean;
     }) => {
         const iconStyle = useMemo(() => ({ width: "27px", height: "27px" }), []);
 
@@ -56,7 +58,15 @@ const Nav = memo(
                 </div>
                 <div className="text-[20px] font-bold ml-4 flex flex-row">
                     {chatUsername ? (
-                        <div className="md:hidden h-[33px] mt-[-2px] mr-[18px] aspect-square rounded-full bg-zinc-800"></div>
+                        <div className="md:hidden h-[33px] mt-[-2px] mr-[18px] aspect-square rounded-full bg-zinc-800 relative">
+                            <div
+                                style={{
+                                    opacity: onlineStatus ? "1" : "0",
+                                    scale: onlineStatus ? "1" : "0",
+                                }}
+                                className="w-[14px] aspect-square bg-blue-500 rounded-full absolute bottom-[-2px] right-[-2px] border-[2px] border-black group-hover:border-zinc-400 group-hover:bg-black duration-200"
+                            ></div>
+                        </div>
                     ) : (
                         <></>
                     )}

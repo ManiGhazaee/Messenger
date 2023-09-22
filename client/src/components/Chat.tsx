@@ -32,6 +32,8 @@ const Chat = memo(
             threshold: 0,
         });
 
+        const [isReadyForLoadPrevMessages, setIsReadyForLoadPrevMessages] = useState<boolean>(false);
+
         const scrollToBottomOnClick = useCallback(() => {
             const chatScrollable = document.getElementById("chat-scrollable");
             if (chatScrollable) {
@@ -93,18 +95,19 @@ const Chat = memo(
             }
         }, []);
 
-        const contextOnClick = useCallback(function (ev: React.MouseEvent<HTMLDivElement>) {
+        const contextOnClick = useCallback((ev: React.MouseEvent<HTMLDivElement>) => {
             const chatCont = document.getElementById("chat-scrollable")!;
+            const rect = chatCont.getBoundingClientRect();
+
             const chatWidth = chatCont.offsetWidth;
             const chatHeight = chatCont.offsetHeight;
-
-            const rect = chatCont.getBoundingClientRect();
 
             const chatOffsetTop = rect.top + window.scrollY;
             const chatOffsetLeft = rect.left + window.scrollX;
 
             let x = ev.clientX;
             let y = ev.clientY;
+
             if (ev.clientX > chatWidth / 2 + chatOffsetLeft) {
                 x = ev.clientX - 180;
             }
@@ -126,8 +129,6 @@ const Chat = memo(
 
             if (!sender || !receiver || !last_index) return;
 
-            console.log("last_index:", last_index);
-
             socket.emit("loadPrevMessages", {
                 sender,
                 receiver,
@@ -141,14 +142,24 @@ const Chat = memo(
         });
 
         useEffect(() => {
-            if (inView && selfUsername && chat) {
+            const timeout = setTimeout(() => {
+                setIsReadyForLoadPrevMessages(true);
+            }, 1000);
+            return () => {
+                clearTimeout(timeout);
+                setIsReadyForLoadPrevMessages(false);
+            };
+        }, [chat]);
+
+        useEffect(() => {
+            if (inView && selfUsername && chat && isReadyForLoadPrevMessages) {
                 loadPrevMessages(chat, selfUsername, 30);
             }
-        }, [inView, loadPrevMessages, chat, selfUsername]);
+        }, [inView, loadPrevMessages, chat, selfUsername, isReadyForLoadPrevMessages]);
 
         return (
             <>
-                <div id="chat-cont" className="text-[14px] relative">
+                <div id="chat-cont" className="text-[14px] relative ">
                     <div
                         className={`${
                             autoScrollInView
@@ -175,12 +186,6 @@ const Chat = memo(
                             )}
                         />
                     </div>
-
-                    <div
-                        ref={ref}
-                        onClick={() => loadPrevMessages(chat, selfUsername || "", 30)}
-                        className="absolute top-0 w-full h-[10px]"
-                    ></div>
 
                     <div id="chat-messages">
                         {selfUsername &&
@@ -212,6 +217,12 @@ const Chat = memo(
                                 )
                             )}
                     </div>
+
+                    <div
+                        ref={ref}
+                        onClick={() => loadPrevMessages(chat, selfUsername || "", 30)}
+                        className="absolute top-0 w-full h-[10px]"
+                    ></div>
 
                     <div
                         className={`${
