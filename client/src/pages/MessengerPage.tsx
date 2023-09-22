@@ -349,6 +349,32 @@ const MessengerPage = memo(
             return () => clearInterval(inter);
         }, [menu]);
 
+        useSocket(socket, "loadPrevMessages", (data: { messages: Message[] }) => {
+            console.log("LOAD_PREV_MESSAGES", data);
+
+            const chatWith = data.messages[0].sender === username ? data.messages[0].receiver : data.messages[0].sender;
+
+            if (!chatWith) return;
+
+            setChat((prev) => {
+                let _prev = { ...prev };
+                _prev[chatWith].unshift(...data.messages);
+                return _prev;
+            });
+
+            const chatMessagesCont = document.getElementById("chat-messages");
+
+            let prevFirstMessage: HTMLElement;
+            if (chatMessagesCont) {
+                if (chatMessagesCont.children.length >= 30) {
+                    prevFirstMessage = chatMessagesCont.children[30] as HTMLElement;
+                } else {
+                    prevFirstMessage = chatMessagesCont.children[chatMessagesCont.children.length - 1] as HTMLElement;
+                }
+                prevFirstMessage.scrollIntoView();
+            }
+        });
+
         return (
             <div className="h-screen overflow-hidden">
                 <Setting

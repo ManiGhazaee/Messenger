@@ -472,6 +472,34 @@ io.on("connection", (socket: Socket) => {
         socket.emit("onlineUsers", data);
     });
 
+    socket.on(
+        "loadPrevMessages",
+        async (data: { sender: string; receiver: string; last_index: number; amount: number }) => {
+            try {
+                const room = await RoomModel.findOne({
+                    participants: { $all: [data.sender, data.receiver] },
+                });
+
+                if (!room || !room.messages) return;
+
+                for (let i = 0; i < room.messages.length; i++) {
+                    if (room.messages[i].index === data.last_index) {
+                        const newPrevMessages = room.messages.slice(
+                            i + 1,
+                            Math.min(i + 1 + data.amount, room.messages.length)
+                        ).reverse();
+
+                        socket.emit("loadPrevMessages", { messages: newPrevMessages });
+
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    );
+
     socket.on("disconnect", () => {
         console.log("A user disconnected");
         if (room) {

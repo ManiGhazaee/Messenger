@@ -164,7 +164,7 @@ const ChatMessage = memo(
                         />
                         <div
                             id={message.index.toString()}
-                            key={message.receiver + message.index.toString()}
+                            // key={message.receiver + message.index.toString()}
                             className={`flex flex-row justify-end w-[calc(100%-10px)] ml-[5px] text-right rounded-2xl relative group`}
                             ref={ref}
                             onClick={messageOnClick}
@@ -240,7 +240,7 @@ const ChatMessage = memo(
                         />
                         <div
                             id={message.index.toString()}
-                            key={message.sender + message.index.toString()}
+                            // key={message.sender + message.index.toString()}
                             className={`flex flex-row justify-start w-[calc(100%-10px)] ml-[5px] rounded-2xl group relative`}
                             ref={ref}
                             onClick={messageOnClick}

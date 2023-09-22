@@ -4,6 +4,7 @@ import ChatMessage from "./ChatMessage";
 import { Socket } from "socket.io-client";
 import { TChat } from "../pages/MessengerPage";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import InfiniteScroll from "react-infinite-scroller";
 
 const Chat = memo(
     ({
@@ -113,9 +114,41 @@ const Chat = memo(
             return { x, y };
         }, []);
 
+        const loadPrevMessages = useCallback((chat: Message[], selfUsername: string, amount: number) => {
+            if (!chat || !selfUsername || !amount || !socket) return;
+
+            const firstMessageInLoadedChat = chat[0];
+            const last_index = firstMessageInLoadedChat.index;
+            const [sender, receiver] =
+                firstMessageInLoadedChat.sender === selfUsername
+                    ? [firstMessageInLoadedChat.sender, firstMessageInLoadedChat.receiver]
+                    : [firstMessageInLoadedChat.receiver, firstMessageInLoadedChat.sender];
+
+            if (!sender || !receiver || !last_index) return;
+
+            console.log("last_index:", last_index);
+
+            socket.emit("loadPrevMessages", {
+                sender,
+                receiver,
+                last_index,
+                amount,
+            });
+        }, []);
+
+        const { ref, inView } = useInView({
+            threshold: 0,
+        });
+
+        useEffect(() => {
+            if (inView && selfUsername && chat) {
+                loadPrevMessages(chat, selfUsername, 30);
+            }
+        }, [inView, loadPrevMessages, chat, selfUsername]);
+
         return (
             <>
-                <div id="chat-cont" className="text-[14px] ">
+                <div id="chat-cont" className="text-[14px] relative">
                     <div
                         className={`${
                             autoScrollInView
@@ -142,7 +175,14 @@ const Chat = memo(
                             )}
                         />
                     </div>
-                    <div className="">
+
+                    <div
+                        ref={ref}
+                        onClick={() => loadPrevMessages(chat, selfUsername || "", 30)}
+                        className="absolute top-0 w-full h-[10px]"
+                    ></div>
+
+                    <div id="chat-messages">
                         {selfUsername &&
                             chat.map((message, index) =>
                                 message.sender === selfUsername ? (
