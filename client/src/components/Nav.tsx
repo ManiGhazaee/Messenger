@@ -70,7 +70,16 @@ const Nav = memo(
                     ) : (
                         <></>
                     )}
-                    {navTitle}
+                    <div className="flex flex-col">
+                        <div className={`${!chatUsername ? "" : "mt-[-6px] text-[19px]"} duration-200`}>{navTitle}</div>
+                        <div
+                            className={`${onlineStatus ? "text-blue-500" : "text-zinc-500"} ${
+                                !chatUsername ? "opacity-0" : "opacity-100"
+                            } text-[14px] font-normal duration-200 mt-[-6px]`}
+                        >
+                            {onlineStatus ? "Online" : "Offline"}
+                        </div>
+                    </div>
                 </div>
                 {state === "menu" && (
                     <div
