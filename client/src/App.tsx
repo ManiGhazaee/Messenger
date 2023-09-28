@@ -10,6 +10,7 @@ import LandingPage from "./pages/LandingPage";
 
 export const TOKEN_STORAGE_KEY = "TOKEN";
 const SOCKET_URL = "ws://localhost:8080";
+// const SOCKET_URL = "ws://messenger-hpar.onrender.com:8080";
 
 export type ConnectionStatus = "connected" | "disconnected" | "reconnecting" | "connection_error";
 
