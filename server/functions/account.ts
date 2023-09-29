@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { existsEmail, existsUsername } from "../utils/general";
 import UserModel, { DUser } from "../models/user";
-import RoomModel, { DRoom } from "../models/room";
+import RoomModel from "../models/room";
 import mongoose from "mongoose";
 require("dotenv").config();
 
@@ -116,17 +116,17 @@ export async function signup(socket: Socket, data: SignupData) {
 }
 
 export async function login(socket: Socket, data: LoginData) {
-    const { username_or_email, password } = data;
-
-    if (!username_or_email || !password) {
-        socket.emit("login", {
-            success: false,
-            message: "Missing required fields",
-        });
-        return;
-    }
-
     try {
+        const { username_or_email, password } = data;
+
+        if (!username_or_email || !password) {
+            socket.emit("login", {
+                success: false,
+                message: "Missing required fields",
+            });
+            return;
+        }
+
         const user = await UserModel.findOne({
             $or: [{ username: username_or_email }, { email: username_or_email }],
         });
@@ -190,7 +190,7 @@ export async function userByName(username: string) {
 
         return user;
     } catch (e) {
-        console.log(e);
+        console.log("userByName", e);
         return false;
     }
 }
@@ -199,14 +199,19 @@ export function roomIdWith(
     id: string,
     user: mongoose.Document<unknown, {}, DUser> & DUser & { _id: mongoose.Types.ObjectId }
 ) {
-    if (user.rooms.length === 0) return false;
+    try {
+        if (user.rooms.length === 0) return false;
 
-    for (let i = 0; i < user.rooms.length; i++) {
-        if (user.rooms[i].with === id) {
-            return user.rooms[i].id;
+        for (let i = 0; i < user.rooms.length; i++) {
+            if (user.rooms[i].with === id) {
+                return user.rooms[i].id;
+            }
         }
+        return false;
+    } catch (e) {
+        console.log("roomIdWith", e);
+        return false;
     }
-    return false;
 }
 
 export async function addMessageToRoomByParticipants(
@@ -322,17 +327,6 @@ export async function createRoom(sender: DUserDoc, receiver: DUserDoc, message: 
     }
 }
 
-export async function addMessageToRoom(message: Message, roomId: string) {
-    console.time("addMessageToRoom performance");
-    const room = await RoomModel.findById(roomId);
-    if (room) {
-        message.index = room.messages.length;
-    }
-
-    await RoomModel.findByIdAndUpdate(roomId, { $unshift: { messages: message } }, { new: true });
-    console.timeEnd("addMessageToRoom performance");
-}
-
 export async function addLastMessageToRoom(sender: DUserDoc, receiver: DUserDoc, message: Message, roomId: string) {
     try {
         const senderRoom = sender.rooms.find((room) => room.id === roomId);
@@ -352,53 +346,62 @@ export async function addLastMessageToRoom(sender: DUserDoc, receiver: DUserDoc,
 }
 
 export function findNewMessagesIndexMarker(messages: Message[], username: string): number | null {
-    if (messages[0].seen) return null;
-    for (let i = 1; i < messages.length; i++) {
-        if (messages[i].seen) {
-            if (messages[i - 1].receiver !== username) {
-                return messages[i - 1].index;
-            } else {
-                return null;
+    try {
+        if (messages[0].seen) return null;
+        for (let i = 1; i < messages.length; i++) {
+            if (messages[i].seen) {
+                if (messages[i - 1].receiver !== username) {
+                    return messages[i - 1].index;
+                } else {
+                    return null;
+                }
             }
         }
+        if (messages[messages.length - 1].receiver !== username) {
+            return messages[messages.length - 1].index;
+        }
+        return null;
+    } catch (e) {
+        console.log("findNewMessagesIndexMarker", e);
+        return null;
     }
-    if (messages[messages.length - 1].receiver !== username) {
-        return messages[messages.length - 1].index;
-    }
-    return null;
 }
 
 export async function setNotSeenForUsers(sender: string, receiver: string) {
-    const room = await RoomModel.findOne({
-        participants: { $all: [sender, receiver] },
-    });
+    try {
+        const room = await RoomModel.findOne({
+            participants: { $all: [sender, receiver] },
+        });
 
-    let notSeenCount = 0;
+        let notSeenCount = 0;
 
-    if (room) {
-        for (let i = 0; i < room.messages.length; i++) {
-            if (room.messages[i].seen) {
-                notSeenCount = i;
-                break;
+        if (room) {
+            for (let i = 0; i < room.messages.length; i++) {
+                if (room.messages[i].seen) {
+                    notSeenCount = i;
+                    break;
+                }
             }
+
+            await Promise.all([
+                UserModel.findOneAndUpdate(
+                    { username: sender },
+                    { $set: { "rooms.$[elem].not_seen_count": 0 } },
+                    {
+                        arrayFilters: [{ "elem.id": room._id.toString() }],
+                    }
+                ),
+
+                UserModel.findOneAndUpdate(
+                    { username: receiver },
+                    { $set: { "rooms.$[elem].not_seen_count": notSeenCount } },
+                    {
+                        arrayFilters: [{ "elem.id": room._id.toString() }],
+                    }
+                ),
+            ]);
         }
-
-        await Promise.all([
-            UserModel.findOneAndUpdate(
-                { username: sender },
-                { $set: { "rooms.$[elem].not_seen_count": 0 } },
-                {
-                    arrayFilters: [{ "elem.id": room._id.toString() }],
-                }
-            ),
-
-            UserModel.findOneAndUpdate(
-                { username: receiver },
-                { $set: { "rooms.$[elem].not_seen_count": notSeenCount } },
-                {
-                    arrayFilters: [{ "elem.id": room._id.toString() }],
-                }
-            ),
-        ]);
+    } catch (e) {
+        console.log("setNotSeenForUsers", e);
     }
 }
