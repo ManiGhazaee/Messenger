@@ -219,7 +219,7 @@ const MessengerPage = memo(
                 }
 
                 const messageInput = document.getElementById("message-input");
-                if (messageInput) {
+                if (messageInput && window.innerWidth > 640) {
                     messageInput.focus();
                 }
             },
