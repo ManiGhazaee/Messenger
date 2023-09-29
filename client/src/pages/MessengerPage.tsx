@@ -381,7 +381,7 @@ const MessengerPage = memo(
         });
 
         return (
-            <div className="h-screen overflow-hidden">
+            <div className="h-[var(--h-screen)] overflow-hidden">
                 <Setting
                     username={memoizedUsername}
                     settingState={memoizedSettingState}

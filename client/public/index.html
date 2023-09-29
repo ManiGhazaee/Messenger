@@ -15,4 +15,14 @@
     <div id="root"></div>
 </body>
 
+<script>
+    let vh = window.innerHeight;
+    document.documentElement.style.setProperty("--h-screen", `${vh}px`);
+
+    window.addEventListener("resize", () => {
+        let vh = window.innerHeight;
+        document.documentElement.style.setProperty("--h-screen", `${vh}px`);
+    })
+</script>
+
 </html>

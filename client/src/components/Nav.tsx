@@ -29,10 +29,16 @@ const Nav = memo(
     }) => {
         const iconStyle = useMemo(() => ({ width: "27px", height: "27px" }), []);
 
-        let navTitle: string;
+        let navTitle: string | JSX.Element;
 
         if (connectionStatus !== "connected") {
-            navTitle = "Connecting...";
+            navTitle = (
+                <span>
+                    Connecting<span className="animate-pulse ">.</span>
+                    <span className="animate-pulse anim_delay_200">.</span>
+                    <span className="animate-pulse anim_delay_400">.</span>
+                </span>
+            );
         } else {
             if (chatUsername) {
                 navTitle = chatUsername;
