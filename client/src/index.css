@@ -404,3 +404,8 @@ html {
 .menu_message_transition {
     transition: color 200ms, opacity 200ms 300ms;
 }
+
+.h_screen {
+    height: 100vh;
+    height: 100svh;
+}
