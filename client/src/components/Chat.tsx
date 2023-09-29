@@ -117,25 +117,29 @@ const Chat = memo(
             return { x, y };
         }, []);
 
-        const loadPrevMessages = useCallback((chat: Message[], selfUsername: string, amount: number) => {
-            if (!chat || !selfUsername || !amount || !socket) return;
+        const loadPrevMessages = useCallback(
+            (token: string | null, chat: Message[], selfUsername: string, amount: number) => {
+                if (!chat || !selfUsername || !amount || !socket || !token) return;
 
-            const firstMessageInLoadedChat = chat[0];
-            const last_index = firstMessageInLoadedChat.index;
-            const [sender, receiver] =
-                firstMessageInLoadedChat.sender === selfUsername
-                    ? [firstMessageInLoadedChat.sender, firstMessageInLoadedChat.receiver]
-                    : [firstMessageInLoadedChat.receiver, firstMessageInLoadedChat.sender];
+                const firstMessageInLoadedChat = chat[0];
+                const last_index = firstMessageInLoadedChat.index;
+                const [sender, receiver] =
+                    firstMessageInLoadedChat.sender === selfUsername
+                        ? [firstMessageInLoadedChat.sender, firstMessageInLoadedChat.receiver]
+                        : [firstMessageInLoadedChat.receiver, firstMessageInLoadedChat.sender];
 
-            if (!sender || !receiver || !last_index) return;
+                if (!sender || !receiver || !last_index) return;
 
-            socket.emit("loadPrevMessages", {
-                sender,
-                receiver,
-                last_index,
-                amount,
-            });
-        }, []);
+                socket.emit("loadPrevMessages", {
+                    token,
+                    sender,
+                    receiver,
+                    last_index,
+                    amount,
+                });
+            },
+            []
+        );
 
         const { ref, inView } = useInView({
             threshold: 0,
@@ -153,7 +157,7 @@ const Chat = memo(
 
         useEffect(() => {
             if (inView && selfUsername && chat && isReadyForLoadPrevMessages) {
-                loadPrevMessages(chat, selfUsername, 30);
+                loadPrevMessages(token, chat, selfUsername, 30);
             }
         }, [inView, loadPrevMessages, chat, selfUsername, isReadyForLoadPrevMessages]);
 
@@ -220,7 +224,7 @@ const Chat = memo(
 
                     <div
                         ref={ref}
-                        onClick={() => loadPrevMessages(chat, selfUsername || "", 30)}
+                        onClick={() => loadPrevMessages(token, chat, selfUsername || "", 30)}
                         className="absolute top-0 w-full h-[10px]"
                     ></div>
 

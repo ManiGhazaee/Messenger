@@ -316,16 +316,26 @@ const MessengerPage = memo(
         });
 
         const sendTyping = (typerUsername: string | null) => {
-            if (socket && !sentTyping && typerUsername && currentRoomWith) {
-                socket.emit("typing", { status: "START", sender: typerUsername, receiver: currentRoomWith });
+            if (socket && !sentTyping && typerUsername && currentRoomWith && token) {
+                socket.emit("typing", {
+                    token: token,
+                    status: "START",
+                    sender: typerUsername,
+                    receiver: currentRoomWith,
+                });
                 setSentTyping(true);
             }
             if (typingTimeout) {
                 setTimeout(() => {
                     setSentTyping(false);
                     setTypingTimeout(true);
-                    if (socket && typerUsername && currentRoomWith) {
-                        socket.emit("typing", { status: "END", sender: typerUsername, receiver: currentRoomWith });
+                    if (socket && typerUsername && currentRoomWith && token) {
+                        socket.emit("typing", {
+                            token: token,
+                            status: "END",
+                            sender: typerUsername,
+                            receiver: currentRoomWith,
+                        });
                     }
                 }, 1000);
                 setTypingTimeout(false);

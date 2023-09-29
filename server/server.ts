@@ -144,6 +144,10 @@ io.on("connection", (socket: Socket) => {
                 return;
             }
 
+            if (token.username !== data.message.receiver) {
+                return;
+            }
+
             data.message.seen = true;
 
             socket.to(data.message.sender).emit("seen", { message: data.message });
@@ -243,6 +247,10 @@ io.on("connection", (socket: Socket) => {
                     return;
                 }
 
+                if (token.username !== data.sender) {
+                    return;
+                }
+
                 const message: Message = {
                     index: data.index,
                     sender: data.sender,
@@ -308,15 +316,19 @@ io.on("connection", (socket: Socket) => {
     );
 
     socket.on("deleteMessage", async (data: { message: Message; token: string; id: string }) => {
-        const token = auth(data.token);
-        if (token === null) {
-            return;
-        }
-
-        socket.to(data.message.receiver).emit("deleteMessage", { message: data.message });
-        socket.to(data.message.sender).emit("deleteMessage", { message: data.message });
-
         try {
+            const token = auth(data.token);
+            if (token === null) {
+                return;
+            }
+
+            if (token.username !== data.message.receiver && token.username !== data.message.sender) {
+                return;
+            }
+
+            socket.to(data.message.receiver).emit("deleteMessage", { message: data.message });
+            socket.to(data.message.sender).emit("deleteMessage", { message: data.message });
+
             await RoomModel.findOneAndUpdate(
                 {
                     participants: { $all: [data.message.sender, data.message.receiver] },
@@ -328,86 +340,98 @@ io.on("connection", (socket: Socket) => {
         }
     });
 
-    socket.on("clearHistory", async (data: { token: string; id: string; sender: string; receiver: string }) => {
-        const token = auth(data.token);
-        if (token === null) {
-            return;
+    socket.on("clearHistory", async (data: { token: string; sender: string; receiver: string }) => {
+        try {
+            const token = auth(data.token);
+            if (token === null) {
+                return;
+            }
+
+            if (token.username !== data.sender && token.username !== data.receiver) {
+                return;
+            }
+
+            const room = await RoomModel.findOneAndUpdate(
+                {
+                    participants: { $all: [data.sender, data.receiver] },
+                },
+                {
+                    $set: {
+                        messages: [],
+                    },
+                },
+                { new: true }
+            );
+
+            if (!room) return;
+
+            const roomId = room._id.toString();
+            const [newSender, newReceiver] = await Promise.all([
+                UserModel.findOneAndUpdate(
+                    { username: data.sender },
+                    {
+                        $set: {
+                            "rooms.$[elem].not_seen_count": 0,
+                            "rooms.$[elem].last_message.index": 0,
+                            "rooms.$[elem].last_message.seen": false,
+                            "rooms.$[elem].last_message.content": "",
+                            "rooms.$[elem].last_message.time": new Date(),
+                        },
+                    },
+                    {
+                        arrayFilters: [{ "elem.id": roomId }],
+                        new: true,
+                    }
+                ),
+                UserModel.findOneAndUpdate(
+                    { username: data.receiver },
+                    {
+                        $set: {
+                            "rooms.$[elem].not_seen_count": 0,
+                            "rooms.$[elem].last_message.index": 0,
+                            "rooms.$[elem].last_message.seen": false,
+                            "rooms.$[elem].last_message.content": "",
+                            "rooms.$[elem].last_message.time": new Date(),
+                        },
+                    },
+                    {
+                        arrayFilters: [{ "elem.id": roomId }],
+                        new: true,
+                    }
+                ),
+            ]);
+
+            if (!newReceiver || !newSender) return;
+
+            socket.emit("menu", { user: newSender, success: true, message: "User found" });
+
+            socket.to(newReceiver.username).emit("menu", { user: newReceiver, success: true, message: "User found" });
+
+            socket.emit("profile", {
+                success: true,
+                message: "Messages found",
+                new_messages_marker: null,
+                username: newReceiver.username,
+                bio: newReceiver.bio,
+                room_id: roomId,
+                messages: [],
+            });
+        } catch (e) {
+            console.log(e);
         }
-
-        const room = await RoomModel.findOneAndUpdate(
-            {
-                participants: { $all: [data.sender, data.receiver] },
-            },
-            {
-                $set: {
-                    messages: [],
-                },
-            },
-            { new: true }
-        );
-
-        if (!room) return;
-
-        const roomId = room._id.toString();
-        const [newSender, newReceiver] = await Promise.all([
-            UserModel.findOneAndUpdate(
-                { username: data.sender },
-                {
-                    $set: {
-                        "rooms.$[elem].not_seen_count": 0,
-                        "rooms.$[elem].last_message.index": 0,
-                        "rooms.$[elem].last_message.seen": false,
-                        "rooms.$[elem].last_message.content": "",
-                        "rooms.$[elem].last_message.time": new Date(),
-                    },
-                },
-                {
-                    arrayFilters: [{ "elem.id": roomId }],
-                    new: true,
-                }
-            ),
-            UserModel.findOneAndUpdate(
-                { username: data.receiver },
-                {
-                    $set: {
-                        "rooms.$[elem].not_seen_count": 0,
-                        "rooms.$[elem].last_message.index": 0,
-                        "rooms.$[elem].last_message.seen": false,
-                        "rooms.$[elem].last_message.content": "",
-                        "rooms.$[elem].last_message.time": new Date(),
-                    },
-                },
-                {
-                    arrayFilters: [{ "elem.id": roomId }],
-                    new: true,
-                }
-            ),
-        ]);
-
-        if (!newReceiver || !newSender) return;
-
-        socket.emit("menu", { user: newSender, success: true, message: "User found" });
-
-        socket.to(newReceiver.username).emit("menu", { user: newReceiver, success: true, message: "User found" });
-
-        socket.emit("profile", {
-            success: true,
-            message: "Messages found",
-            new_messages_marker: null,
-            username: newReceiver.username,
-            bio: newReceiver.bio,
-            room_id: roomId,
-            messages: [],
-        });
     });
 
-    socket.on("deleteChat", async (data: { token: string; id: string; sender: string; receiver: string }) => {
-        const token = auth(data.token);
-        if (token === null) {
-            return;
-        }
-
+    socket.on("deleteChat", async (data: { token: string; sender: string; receiver: string }) => {
         try {
+            const token = auth(data.token);
+            if (token === null) {
+                return;
+            }
+
+            if (token.username !== data.sender && token.username !== data.receiver) {
+                return;
+            }
+
             const room = await RoomModel.findOneAndDelete({
                 participants: { $all: [data.sender, data.receiver] },
             });
@@ -456,26 +480,54 @@ io.on("connection", (socket: Socket) => {
         }
     });
 
-    socket.on("typing", (data: { status: "START" | "END"; sender: string; receiver: string }) => {
-        socket.to(data.receiver).emit("typing", { status: data.status, sender: data.sender, receiver: data.receiver });
+    socket.on("typing", (data: { token: string; status: "START" | "END"; sender: string; receiver: string }) => {
+        try {
+            const token = auth(data.token);
+            if (token === null) {
+                return;
+            }
+
+            if (token.username !== data.sender && token.username !== data.receiver) {
+                return;
+            }
+
+            socket
+                .to(data.receiver)
+                .emit("typing", { status: data.status, sender: data.sender, receiver: data.receiver });
+        } catch (e) {
+            console.log(e);
+        }
     });
 
     socket.on("onlineUsers", async (data: { [key: string]: boolean }) => {
-        let userRoomLength;
-        for (const key in data) {
-            userRoomLength = (await io.in(key).fetchSockets()).length;
-            if (userRoomLength !== 0) {
-                data[key] = true;
+        try {
+            let userRoomLength;
+            for (const key in data) {
+                userRoomLength = (await io.in(key).fetchSockets()).length;
+                if (userRoomLength !== 0) {
+                    data[key] = true;
+                }
             }
-        }
 
-        socket.emit("onlineUsers", data);
+            socket.emit("onlineUsers", data);
+        } catch (e) {
+            console.log(e);
+        }
     });
 
     socket.on(
         "loadPrevMessages",
-        async (data: { sender: string; receiver: string; last_index: number; amount: number }) => {
+        async (data: { token: string; sender: string; receiver: string; last_index: number; amount: number }) => {
             try {
+                const token = auth(data.token);
+                if (token === null) {
+                    return;
+                }
+
+                if (token.username !== data.sender && token.username !== data.receiver) {
+                    return;
+                }
+
                 const room = await RoomModel.findOne({
                     participants: { $all: [data.sender, data.receiver] },
                 });
@@ -484,10 +536,9 @@ io.on("connection", (socket: Socket) => {
 
                 for (let i = 0; i < room.messages.length; i++) {
                     if (room.messages[i].index === data.last_index) {
-                        const newPrevMessages = room.messages.slice(
-                            i + 1,
-                            Math.min(i + 1 + data.amount, room.messages.length)
-                        ).reverse();
+                        const newPrevMessages = room.messages
+                            .slice(i + 1, Math.min(i + 1 + data.amount, room.messages.length))
+                            .reverse();
 
                         socket.emit("loadPrevMessages", { messages: newPrevMessages });
 
