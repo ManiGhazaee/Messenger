@@ -76,7 +76,7 @@ const ChatMessage = memo(
         const memoizedItems = useMemo(
             () => [
                 {
-                    text: "Replay",
+                    text: "Reply",
                     onClick: replyOnClick,
                     params: [message.index, message],
                     icon: (
