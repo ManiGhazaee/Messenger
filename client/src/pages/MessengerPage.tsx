@@ -79,6 +79,7 @@ const MessengerPage = memo(
         }, []);
 
         useSocket(socket, "search", (data: SearchResult) => {
+            data.users.filter((i) => i.username !== username);
             setSearchResult(data);
         });
 
