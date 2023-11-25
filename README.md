@@ -15,7 +15,8 @@ A simple text messenger showcasing basic messaging features.
 
 Explore the live demo at [Messenger Demo](https://messenger-mauve.vercel.app). 
 > [!NOTE]
-> Server may take a minute or two to start if not used after a certain time.
+> - Server may take a minute or two to start. 
+> - The server automatically resets each socket connection after 5 minutes.
 
 ## Disclaimer
 
